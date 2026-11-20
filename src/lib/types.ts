@@ -89,7 +89,8 @@ export interface Nutrition {
 
 export interface Profile {
   diet: Diet;
-  region: Cuisine;
+  /** cooking styles the family eats, most-cooked first; never empty */
+  regions: Cuisine[];
   lang: Lang;
   people: number;
   spice: SpiceLevel;

@@ -4,12 +4,17 @@ import test from 'node:test';
 
 import { INGREDIENTS } from '../data/ingredients.ts';
 import { DISHES, DISH_BY_ID } from '../data/dishes/index.ts';
+import { STEPS_GU, STEPS_HI } from '../data/steps.ts';
+import { FESTIVALS, LEFTOVERS } from '../data/collections.ts';
+import { cookFromFridge, keyIngredients } from './fridge.ts';
+import { formatBuy, groceryList } from './grocery.ts';
+import { clock, stepMinutes } from './timer.ts';
 import { balanceTips, fitsDiet, isJain, jainSkips, perServing } from './nutrition.ts';
 import { LIMITS, STAPLES, planWeek, swapDish, type DayPlan } from './planner.ts';
 import { formatQty, scaleQty } from './scale.ts';
 import type { Profile } from './types.ts';
 
-const profile: Profile = { diet: 'veg', region: 'gujarati', lang: 'en', people: 4, spice: 'medium', dislikes: [] };
+const profile: Profile = { diet: 'veg', regions: ['gujarati'], lang: 'en', people: 4, spice: 'medium', dislikes: [] };
 
 test('dish data is valid', () => {
   const ids = new Set<string>();
@@ -24,6 +29,16 @@ test('dish data is valid', () => {
     }
   }
   for (const d of DISHES) for (const p of d.pairs ?? []) assert.ok(ids.has(p), `${d.id} pairs unknown ${p}`);
+});
+
+test('translated steps match their English recipe line for line', () => {
+  for (const [lang, map] of [['gu', STEPS_GU], ['hi', STEPS_HI]] as const) {
+    for (const [id, steps] of Object.entries(map)) {
+      const d = DISH_BY_ID.get(id);
+      assert.ok(d, `${lang}: unknown dish ${id}`);
+      assert.equal(steps.length, d.steps.length, `${lang} ${id}: ${steps.length} steps vs ${d.steps.length} in English`);
+    }
+  }
 });
 
 test('nutrition per serving is plausible', () => {
@@ -109,6 +124,48 @@ test('everyday rotli beats puri for lunch', () => {
     }
   }
   assert.ok(rotli > puri * 4, `rotli ${rotli} vs puri ${puri}`);
+});
+
+test('several cooking styles rotate the lunch format', () => {
+  const plan = planWeek(DISHES, { ...profile, regions: ['gujarati', 'south'] }, { start: new Date(2026, 10, 16), seed: 2 });
+  // Gujarati days: sabji, dal, bread, rice. South days: dal, sabji, rice (no bread).
+  const courses = (i: number) => plan[i].lunch.map((id) => DISH_BY_ID.get(id)!.course);
+  assert.ok(courses(0).includes('bread'));
+  assert.ok(!courses(1).includes('bread'));
+});
+
+test('grocery list sums a week and scales with family size', () => {
+  const plan = planWeek(DISHES, profile, { start: new Date(2026, 10, 16), seed: 4 });
+  const four = groceryList(plan, DISH_BY_ID, 4, 'medium');
+  const eight = groceryList(plan, DISH_BY_ID, 8, 'medium');
+  assert.ok(four.length > 15, `only ${four.length} items`);
+  assert.ok(!four.some((i) => i.id === 'water'));
+  const atta4 = four.find((i) => i.id === 'atta');
+  const atta8 = eight.find((i) => i.id === 'atta');
+  if (atta4 && atta8) assert.ok(Math.abs(atta8.qty - 2 * atta4.qty) <= 2, 'main ingredients double for double people');
+  assert.equal(formatBuy({ id: 'x', aisle: 'veg', qty: 1234, unit: 'g', dishes: [] }), '1.3 kg');
+  assert.equal(formatBuy({ id: 'x', aisle: 'veg', qty: 320, unit: 'g', dishes: [] }), '350 g');
+  assert.equal(formatBuy({ id: 'x', aisle: 'veg', qty: 6, unit: 'pc', dishes: [] }), '6 pcs');
+});
+
+test('festival and leftover menus only list real dishes', () => {
+  for (const c of [...FESTIVALS, ...LEFTOVERS]) for (const id of c.dishIds) assert.ok(DISH_BY_ID.has(id), `${c.id}: unknown ${id}`);
+});
+
+test('fridge mode ranks dishes by what is missing', () => {
+  const matches = cookFromFridge(['potato', 'peas', 'cauliflower'], DISHES);
+  assert.ok(matches.length > 0);
+  assert.ok(matches[0].missing.length <= matches[matches.length - 1].missing.length);
+  assert.ok(matches.some((m) => m.dish.id === 'aloo_matar' && m.missing.length === 0));
+  assert.ok(!keyIngredients(DISH_BY_ID.get('aloo_matar')!).includes('salt'));
+});
+
+test('cook mode finds timers in steps', () => {
+  assert.equal(stepMinutes('Boil 10 to 12 minutes on medium.'), 12);
+  assert.equal(stepMinutes('Cover and rest 15 minutes.'), 15);
+  assert.equal(stepMinutes('Rest 2 hours covered.'), 120);
+  assert.equal(stepMinutes('Pressure cook 3 whistles.'), null);
+  assert.equal(clock(605), '10:05');
 });
 
 test('fast days only use upvas dishes', () => {

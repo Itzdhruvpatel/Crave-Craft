@@ -26,8 +26,14 @@ export default function RootLayout() {
       value={{ ...base, colors: { ...base.colors, background: c.background, card: c.background, text: c.text, primary: c.accent } }}>
       <Stack screenOptions={{ headerShadowVisible: false }}>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen name="welcome" options={{ headerShown: false, animation: 'fade' }} />
+        <Stack.Screen name="login" options={{ headerShown: false, animation: 'fade' }} />
         <Stack.Screen name="onboarding" options={{ headerShown: false }} />
         <Stack.Screen name="dish/[id]" options={{ headerShown: false }} />
+        <Stack.Screen name="grocery" options={{ headerShown: false }} />
+        <Stack.Screen name="fridge" options={{ headerShown: false }} />
+        <Stack.Screen name="cook/[id]" options={{ headerShown: false, animation: 'fade' }} />
+        <Stack.Screen name="family" options={{ headerShown: false }} />
       </Stack>
     </ThemeProvider>
   );

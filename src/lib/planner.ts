@@ -66,7 +66,7 @@ function isWeekend(d: Date): boolean {
 
 function weight(d: Dish, ctx: Ctx): number {
   let w = 1;
-  if (d.cuisine === ctx.profile.region) w *= 3;
+  if (ctx.profile.regions.includes(d.cuisine)) w *= 3;
   else if (d.cuisine === 'pan') w *= 1.5;
   if (d.season?.includes(ctx.season)) w *= 1.5;
   if (ctx.profile.dislikes.includes(d.id)) w *= 0.3;
@@ -174,7 +174,9 @@ export function planWeek(dishes: Dish[], profile: Profile, opts: PlanOptions): D
     ctx.weekend = isWeekend(date);
     for (const slot of SLOTS) {
       ctx.slot = slot;
-      const courses: (Course | 'upvas')[] = fast ? ['upvas'] : template(slot, i, profile.region);
+      // Families who cook several styles get each style's lunch format in turn.
+      const style = profile.regions[i % profile.regions.length];
+      const courses: (Course | 'upvas')[] = fast ? ['upvas'] : template(slot, i, style);
       for (const c of courses) {
         const d = pick(poolFor(ctx, slot, c), ctx);
         if (d) day[slot].push(d.id);

@@ -68,7 +68,7 @@ export const GUJARATI: Dish[] = [
       'Mix atta, rava, salt and 1 tbsp oil. Knead a stiff dough.',
       'Rest 10 minutes. Roll small, even rounds.',
       'Deep fry in hot oil, pressing gently so they puff. Flip and fry till light golden.',
-      'Drain on paper. (Last oil line counts only the oil absorbed.)',
+      'Drain on paper and serve hot.',
     ],
   },
 

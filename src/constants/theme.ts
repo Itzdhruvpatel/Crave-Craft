@@ -2,47 +2,34 @@ import '@/global.css';
 
 import { Platform } from 'react-native';
 
-// Steel thali + bandhani palette: steel plates, indigo ink, haldi, kumkum, kadi patta.
-export const Colors = {
-  light: {
-    text: '#1D2B5C', // indigo ink
-    textSecondary: '#5A6587',
-    background: '#F4F6F7',
-    backgroundElement: '#E8ECEF', // steel
-    backgroundSelected: '#D5DCE1',
-    border: '#D0D7DD',
-    accent: '#C8102E', // kumkum
-    accentText: '#FFFFFF',
-    haldi: '#F2B705',
-    onHaldi: '#3A2A00',
-    good: '#2E6B3F', // kadi patta
-    goodSoft: '#DCEBDF',
-    warn: '#A15C00',
-    steelHi: '#FFFFFF',
-    steelLo: '#C3CCD3',
-    scrim: 'rgba(17,22,46,0.72)',
-  },
-  dark: {
-    text: '#EEF1FA',
-    textSecondary: '#A5AEC8',
-    background: '#11162E',
-    backgroundElement: '#1B2244',
-    backgroundSelected: '#283160',
-    border: '#283160',
-    accent: '#FF4D5E',
-    accentText: '#11162E',
-    haldi: '#F7C531',
-    onHaldi: '#2B2000',
-    good: '#6FC08A',
-    goodSoft: '#1D3A2B',
-    warn: '#F2B04C',
-    steelHi: '#46517E',
-    steelLo: '#1B2244',
-    scrim: 'rgba(8,10,24,0.78)',
-  },
+// Glass Kitchen: dark frosted glass over blurred food photos, white controls, one lime accent.
+// The app is always dark so the food photography carries the colour.
+const glass = {
+  text: '#FFFFFF',
+  textSecondary: 'rgba(255,255,255,0.66)',
+  textDim: 'rgba(255,255,255,0.45)',
+  background: '#0B0D0A',
+  backgroundElement: 'rgba(255,255,255,0.10)', // glass fill
+  backgroundSelected: 'rgba(255,255,255,0.18)',
+  glassStrong: 'rgba(22,24,20,0.62)',
+  border: 'rgba(255,255,255,0.16)',
+  accent: '#CFF54A', // lime
+  accentText: '#10140A',
+  haldi: '#CFF54A',
+  onHaldi: '#10140A',
+  good: '#CFF54A',
+  goodSoft: 'rgba(207,245,74,0.14)',
+  warn: '#FFC15A',
+  white: '#FFFFFF',
+  ink: '#10140A',
+  steelHi: '#3A3D37',
+  steelLo: '#1A1C18',
+  scrim: 'rgba(11,13,10,0.85)',
 } as const;
 
-export type ThemeColor = keyof typeof Colors.light & keyof typeof Colors.dark;
+export const Colors = { light: glass, dark: glass } as const;
+
+export type ThemeColor = keyof typeof glass;
 
 export const Spacing = {
   half: 2,
@@ -54,5 +41,6 @@ export const Spacing = {
   six: 64,
 } as const;
 
-export const BottomTabInset = Platform.select({ ios: 50, android: 80 }) ?? 0;
+/** Space the floating dock takes at the bottom of every tab screen. */
+export const BottomTabInset = Platform.select({ ios: 110, android: 110 }) ?? 110;
 export const MaxContentWidth = 560;

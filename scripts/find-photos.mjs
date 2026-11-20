@@ -93,7 +93,9 @@ const QUERY = {
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const out = {};
-for (const d of DISHES) {
+// Only dishes that don't have a photo yet.
+const { PHOTOS } = await import('../src/data/photos.ts');
+for (const d of DISHES.filter((x) => !PHOTOS[x.id])) {
   const q = QUERY[d.id] ?? d.name.en.split('(')[0].trim();
   out[d.id] = { name: d.name.en, query: q, candidates: await search(q) };
   await sleep(1500);

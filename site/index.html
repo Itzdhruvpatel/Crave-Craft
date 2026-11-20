@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mummy Said So</title>
+    <meta name="description" content="Plans breakfast, lunch and dinner for Indian families, so nobody has to ask what to cook." />
+    <meta name="theme-color" content="#0E1226" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Anek+Latin:wght@300;400;500;600&display=swap"
+      rel="stylesheet" />
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <canvas id="scene" aria-hidden="true"></canvas>
+    <div class="veil" aria-hidden="true"></div>
+
+    <header class="nav">
+      <a class="brand" href="#top">Mummy Said So</a>
+      <nav aria-label="Sections">
+        <a href="#question">The question</a>
+        <a href="#plan">The plan</a>
+        <a href="#family">Family</a>
+        <a href="#dadi">Dadi</a>
+      </nav>
+      <a class="nav-cta" href="#get">Get the app</a>
+    </header>
+
+    <main id="top">
+      <section class="hero" data-stage="0">
+        <h1>Aaj kya<br /><em>banega?</em></h1>
+        <p class="lede">Every breakfast, lunch and dinner for the week, planned for your family. Nobody has to ask again.</p>
+        <div class="actions">
+          <a class="btn btn-primary" href="#get">Get the app</a>
+          <a class="btn btn-ghost" href="#question">See how it works</a>
+        </div>
+      </section>
+
+      <section id="question" class="story" data-stage="1">
+        <div class="copy">
+          <h2>Same question.<br /><em>Every single day.</em></h2>
+          <p>
+            Mummy asks the family group what to make. Four people read it. Nobody replies. By the time someone says
+            "anything", the sabji should already be on the gas.
+          </p>
+        </div>
+        <div class="chat" aria-label="Family group chat">
+          <div class="chat-head"><span class="dot"></span> Patel Parivaar <small>5 members</small></div>
+          <div class="bubble mom" style="--i: 0">Aaj dinner ma shu banavu? 🤔<span class="meta">7:42 pm</span></div>
+          <div class="seen" style="--i: 1">Seen by Papa, Dhruv, Riya, Dadi</div>
+          <div class="bubble mom" style="--i: 2">Koi to jawab aapo 😤<span class="meta">7:58 pm</span></div>
+          <div class="bubble kid" style="--i: 3">kuch bhi<span class="meta">8:21 pm</span></div>
+          <div class="bubble mom angry" style="--i: 4">😡😡😡<span class="meta">8:21 pm</span></div>
+        </div>
+      </section>
+
+      <section id="plan" class="story" data-stage="2">
+        <div class="copy">
+          <h2>A whole week,<br /><em>planned in one tap.</em></h2>
+          <p>Sabji, dal, rotli and bhaat every day, the way your house actually eats. The planner keeps it balanced without anyone thinking about it.</p>
+          <ul class="facts">
+            <li><strong>No sabji twice</strong> in the same week, and never the same vegetable two days in a row.</li>
+            <li><strong>Undhiyu waits for Sunday.</strong> Long, fancy dishes land on weekends, quick ones on busy weekdays.</li>
+            <li><strong>Pav bhaji once, not daily.</strong> Outside food and chatpata dishes are capped every week.</li>
+            <li><strong>Ekadashi sorted.</strong> Mark a fast day and only farali food shows up.</li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="story right" data-stage="3">
+        <div class="copy">
+          <h2>Measured for your family,<br /><em>not a cookbook's.</em></h2>
+          <p>Cooking for 4 tonight and 9 on Sunday? Every quantity changes with it. Salt and masala grow slower than the dal, the way any mom adjusts by hand.</p>
+          <div class="scale" role="group" aria-label="Scaling example for Gujarati dal">
+            <div class="scale-row head"><span></span><span>4 people</span><span>8 people</span></div>
+            <div class="scale-row"><span>Toor dal</span><span>150 g</span><span>300 g</span></div>
+            <div class="scale-row"><span>Salt</span><span>1¼ tsp</span><span>2¼ tsp</span></div>
+            <div class="scale-row"><span>Red chilli</span><span>½ tsp</span><span>1 tsp</span></div>
+          </div>
+          <p class="small">Pick low, medium or high spice once. Sweets skip the question.</p>
+        </div>
+      </section>
+
+      <section class="story" data-stage="4">
+        <div class="copy">
+          <h2>Balanced plate,<br /><em>without counting.</em></h2>
+          <p>Calories, protein, fibre, sugar and salt for every serving. When aloo sabji and rotli fall short on protein, it suggests a katori of curd or sprouts on the side.</p>
+        </div>
+      </section>
+
+      <section id="family" class="story right" data-stage="5">
+        <div class="copy">
+          <h2>Mummy decides.<br /><em>Everyone knows.</em></h2>
+          <p>One family table for everyone at home. The menu reaches every phone. Want a surprise? Hide it until dinner. Kids can file a petition for pav bhaji, with a bribe attached. The HOD has the final word.</p>
+          <div class="petition">
+            <p class="petition-title">Petition to the HOD</p>
+            <p>Requesting pav bhaji this Saturday. In return I will chop all the onions and wash the tawa.</p>
+            <p class="petition-from">Filed by Dhruv</p>
+            <span class="stamp">Approved</span>
+          </div>
+        </div>
+      </section>
+
+      <section id="dadi" class="story" data-stage="6">
+        <div class="copy">
+          <h2>Dadi can use it too.</h2>
+          <p class="langs"><span>ગુજરાતી</span><span>हिंदी</span><span>English</span></p>
+          <p>The whole app switches language from settings, and every recipe can be read out loud. Big buttons, big photos, no tiny text.</p>
+        </div>
+      </section>
+
+      <section id="get" class="final" data-stage="7">
+        <h2>Mummy <em>said so.</em></h2>
+        <p class="lede">The Android app is almost ready. It will be a free download straight from this page, no Play Store needed.</p>
+        <span class="btn btn-primary is-disabled" aria-disabled="true">Android download coming soon</span>
+      </section>
+    </main>
+
+    <footer class="foot">
+      <p>Mummy Said So. Made at home, for home.</p>
+      <p class="credits">
+        Food photos from Wikimedia Commons:
+        <a href="https://commons.wikimedia.org/wiki/File:Gujarati_daal.jpg">dal</a> by Dhaval S. Vyas (public domain),
+        <a href="https://commons.wikimedia.org/wiki/File:Sev_Tameta_Nu_Shaak.jpg">sev tameta</a> by UserWiki (CC BY-SA 4.0),
+        <a href="https://commons.wikimedia.org/wiki/File:Chapati_1.jpg">rotli</a> by Gaurav Dhwaj Khadka (CC BY-SA 4.0),
+        <a href="https://commons.wikimedia.org/wiki/File:Jeera_Rice_(only).jpg">jeera rice</a> by JVRKPRASAD (CC BY-SA 4.0),
+        <a href="https://commons.wikimedia.org/wiki/File:Kachumber_Salad.JPG">kachumber</a> by Miansari66 (CC0),
+        <a href="https://commons.wikimedia.org/wiki/File:SPECIAL_SURATI_KHAMAN.jpg">khaman</a> by Devmanoj (CC BY-SA 4.0),
+        <a href="https://commons.wikimedia.org/wiki/File:Shrikhand.JPG">shrikhand</a> by Miansari66 (CC0).
+        Photos are cropped and mapped onto a 3D thali made in code.
+      </p>
+    </footer>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
