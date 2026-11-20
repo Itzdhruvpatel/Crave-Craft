@@ -58,7 +58,7 @@ export default function Today() {
   const dish = meal[at];
   const thankedToday = thanks.includes(isoDate(new Date()));
   const days = streak(thanks, new Date());
-  const tips = slot === 'breakfast' ? [] : balanceTips(meal, DISHES, profile!.diet);
+  const tips = slot === 'breakfast' ? [] : balanceTips(meal, DISHES, profile!);
 
   const results = useMemo((): Dish[] => {
     const pool = mine.filter((d) => MAIN_COURSES.includes(d.course));

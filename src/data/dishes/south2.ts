@@ -9,7 +9,7 @@ export const SOUTH_MORE: Dish[] = [
   dish('idiyappam', ['Idiyappam', 'इडियप्पम', 'ઇડિયપ્પમ'], 'south', 'breakfast', 'B', { moods: ['light'], fancy: 2, time: 30, spicy: false, pairs: ['veg_stew'] },
     [['rice_flour', 250, 'g'], ['water', 350, 'ml'], ['coconut_oil', 1, 'tbsp'], ['coconut', 60, 'g'], ['salt', 0.5, 'tsp']],
     ['Boil water with salt and oil. Pour over roasted rice flour and knead a soft smooth dough.', 'Press through a sevai press onto idli plates in nests. Sprinkle grated coconut.', 'Steam 8 minutes. Serve with stew, kurma or sweet coconut milk.']),
-  dish('pongal_sweet', ['Sakkarai Pongal', 'मीठा पोंगल', 'મીઠો પોંગલ'], 'south', 'sweet', 'BL', { moods: ['special', 'comfort'], fancy: 3, time: 35, spicy: false },
+  dish('pongal_sweet', ['Sakkarai Pongal', 'मीठा पोंगल', 'મીઠો પોંગલ'], 'south', 'sweet', 'BL', { moods: ['special', 'comfort'], fancy: 3, time: 35, spicy: false, serves: 6 },
     [['rice', 120, 'g'], ['moong_dal', 40, 'g'], ['jaggery', 200, 'g'], ['milk', 200, 'ml'], ['water', 500, 'ml'], ['ghee', 4, 'tbsp'], ['cashew', 15, 'pc'], ['raisins', 1, 'tbsp'], ['elaichi', 0.5, 'tsp']],
     ['Roast moong dal till fragrant. Pressure cook with rice, milk and water till mushy.', 'Melt jaggery in a little water, strain and add to the rice. Cook 5 minutes.', 'Fry cashews and raisins in ghee, pour over with elaichi. Pongal festival offering.']),
   dish('ragi_mudde', ['Ragi Mudde', 'रागी मुद्दे', 'રાગી મુદ્દે'], 'south', 'bread', 'L', { moods: ['heavy'], fancy: 1, time: 20, spicy: false, pairs: ['sambar'] },

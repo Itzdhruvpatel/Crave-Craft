@@ -704,7 +704,7 @@ export const GUJARATI: Dish[] = [
   {
     id: 'sukhdi', name: { en: 'Sukhdi', hi: 'गुड़पापड़ी', gu: 'સુખડી' },
     cuisine: 'gujarati', course: 'sweet', meals: ['snack', 'breakfast'], diet: 'veg',
-    moods: ['comfort', 'quick'], fancy: 2, time: 20, serves: 6, spicy: false, season: ['winter'],
+    moods: ['comfort', 'quick'], fancy: 2, time: 20, serves: 10, spicy: false, season: ['winter'],
     ings: [['atta', 150, 'g'], ['ghee', 100, 'g'], ['jaggery', 100, 'g'], ['elaichi', 0.25, 'tsp']],
     steps: [
       'Heat ghee, add atta and roast on low, stirring, till golden brown and aromatic (10 to 12 minutes).',

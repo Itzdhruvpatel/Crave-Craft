@@ -57,7 +57,7 @@ export const SABZI: Dish[] = [
   dish('katachi_amti', ['Katachi Amti', 'कटाची आमटी', 'કટાચી આમટી'], 'maharashtrian', 'dal', 'L', { moods: ['special'], fancy: 2, time: 25, pairs: ['puran_poli'] },
     [['chana_dal', 50, 'g'], ['water', 900, 'ml'], ['tamarind', 15, 'g'], ['jaggery', 2, 'tbsp'], ['goda_masala', 2, 'tsp'], ['dry_coconut', 2, 'tbsp'], ['oil', 1, 'tbsp'], ['rai', 0.5, 'tsp'], ['hing', 1, 'pinch'], ['curry_leaves', 8, 'pc'], ['salt', 1, 'tsp']],
     ['Use the water from boiling chana dal for puran poli, with a spoon of the dal.', 'Boil with tamarind, jaggery, goda masala and roasted coconut.', 'Rai-hing tadka. Thin and spicy, made only with puran poli.']),
-  dish('bhopla_gharge', ['Bhoplyache Gharge', 'भोपळ्याचे घारगे', 'કોળાના ઘારગે'], 'maharashtrian', 'sweet', 'S', { moods: ['special'], fancy: 2, time: 40, spicy: false },
+  dish('bhopla_gharge', ['Bhoplyache Gharge', 'भोपळ्याचे घारगे', 'કોળાના ઘારગે'], 'maharashtrian', 'sweet', 'S', { moods: ['special'], fancy: 2, time: 40, spicy: false, serves: 6 },
     [['pumpkin', 250, 'g'], ['jaggery', 100, 'g'], ['atta', 150, 'g'], ['rava', 2, 'tbsp'], ['elaichi', 0.5, 'tsp'], ['oil', 8, 'tbsp']],
     ['Cook grated pumpkin with jaggery till dry; cool.', 'Knead with atta, rava and elaichi; roll small thick puris.', 'Fry on medium till golden. Navratri sweet puris.']),
   dish('khatkhate', ['Khatkhate', 'खतखते', 'ખતખતે'], 'pan', 'sabji', 'L', { moods: ['special'], fancy: 3, time: 40, veg: 'mixed' },

@@ -98,7 +98,7 @@ export const PUNJABI: Dish[] = [
   dish('lassi', ['Sweet Lassi', 'मीठी लस्सी', 'મીઠી લસ્સી'], 'punjabi', 'drink', 'LS', { moods: ['light'], fancy: 2, time: 5, spicy: false, season: ['summer'] },
     [['curd', 500, 'g'], ['sugar', 4, 'tbsp'], ['milk', 100, 'ml'], ['elaichi', 0.25, 'tsp'], ['cream', 2, 'tbsp']],
     ['Whisk or blend chilled curd, sugar, milk and elaichi till frothy.', 'Pour into glasses, top with a spoon of malai.']),
-  dish('gajar_halwa', ['Gajar Halwa', 'गाजर का हलवा', 'ગાજરનો હલવો'], 'punjabi', 'sweet', 'LD', { moods: ['special', 'comfort'], fancy: 4, time: 70, spicy: false, season: ['winter'] },
+  dish('gajar_halwa', ['Gajar Halwa', 'गाजर का हलवा', 'ગાજરનો હલવો'], 'punjabi', 'sweet', 'LD', { moods: ['special', 'comfort'], fancy: 4, time: 70, spicy: false, season: ['winter'], serves: 6 },
     [['carrot', 8, 'pc'], ['full_milk', 750, 'ml'], ['sugar', 120, 'g'], ['ghee', 3, 'tbsp'], ['khoya', 80, 'g'], ['elaichi', 0.5, 'tsp'], ['cashew', 10, 'pc'], ['almond', 10, 'pc']],
     ['Grate red winter carrots.', 'Cook carrots in milk on medium, stirring, till all milk dries (35 to 40 minutes).', 'Add ghee and sugar. Cook till it leaves the pan.', 'Add crumbled khoya, elaichi and nuts. Serve warm.']),
   dish('kheer', ['Rice Kheer', 'खीर', 'ખીર'], 'pan', 'sweet', 'LD', { moods: ['comfort', 'special'], fancy: 3, time: 50, spicy: false },

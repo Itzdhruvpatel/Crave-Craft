@@ -58,7 +58,7 @@ export default function DishScreen() {
   const n = perServing(dish);
   const credit = PHOTOS[dish.id];
   const disliked = profile.dislikes.includes(dish.id);
-  const tips = ['sabji', 'oneDish', 'breakfast', 'farsan'].includes(dish.course) ? balanceTips([dish], DISHES, profile.diet) : [];
+  const tips = ['sabji', 'oneDish', 'breakfast', 'farsan'].includes(dish.course) ? balanceTips([dish], DISHES, profile) : [];
   const [a, b] = splitName(nameIn(dish.name, lang));
   const steps = stepsIn(dish, lang);
   const heroH = Math.round(height * 0.5);

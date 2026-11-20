@@ -196,7 +196,7 @@ test('swap keeps course and avoids repeats', () => {
 
 test('balance tips suggest protein when meal is light', () => {
   const meal = ['bateta_nu_shaak', 'rotli'].map((id) => DISH_BY_ID.get(id)!);
-  const tips = balanceTips(meal, DISHES, 'veg');
+  const tips = balanceTips(meal, DISHES, profile);
   assert.ok(tips.some((t) => t.reason === 'protein' && t.dishIds.length > 0));
 });
 
@@ -338,4 +338,16 @@ test('dish names show in every language, real translations first', () => {
   assert.equal(nameIn(dhokli.name, 'pa'), 'ਦਾਲ ਢੋਕਲੀ');
   assert.equal(nameIn(DIET_LABEL.veg, 'ta'), 'சைவம்');
   for (const l of ['mr', 'pa', 'bn', 'ta', 'te', 'kn', 'ml'] as const) assert.ok(tr(l, 'todaysMenu') !== tr('en', 'todaysMenu'), l);
+});
+
+test('balance tips change with the meal and skip disliked sides', () => {
+  const tipsFor = (sabji: string, p = profile) => balanceTips([DISH_BY_ID.get(sabji)!, DISH_BY_ID.get('rotli')!], DISHES, p).find((t) => t.reason === 'protein')?.dishIds ?? [];
+  const sets = ['bateta_nu_shaak', 'bhinda_nu_shaak', 'aloo_gobi', 'parwal_nu_shaak', 'lauki_sabzi'].map((s) => tipsFor(s).join());
+  assert.ok(new Set(sets).size > 1, `always the same: ${sets[0]}`);
+  const first = tipsFor('bateta_nu_shaak')[0];
+  assert.ok(!tipsFor('bateta_nu_shaak', { ...profile, dislikes: [first] }).includes(first));
+});
+
+test('every ingredient counted in pieces has a piece weight', () => {
+  for (const d of DISHES) for (const [id, , unit] of d.ings) if (unit === 'pc') assert.ok(INGREDIENTS[id].pc !== undefined, `${d.id}: ${id} has no piece weight`);
 });

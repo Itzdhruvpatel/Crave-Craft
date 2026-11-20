@@ -15,7 +15,7 @@ export const REGIONAL: Dish[] = [
   dish('bajra_khichdi', ['Bajra Khichdi', 'बाजरा खिचड़ी', 'બાજરીની ખીચડી'], 'rajasthani', 'oneDish', 'LD', { moods: ['comfort', 'heavy'], fancy: 2, time: 45, spicy: false, season: ['winter'] },
     [['bajra_flour', 100, 'g'], ['moong_dal', 75, 'g'], ['water', 900, 'ml'], ['ghee', 2, 'tbsp'], ['jeera', 1, 'tsp'], ['hing', 1, 'pinch'], ['salt', 1, 'tsp']],
     ['Use coarsely crushed bajra (or bajra flour soaked briefly). Cook with moong dal and water till soft, 4 to 5 whistles.', 'Tadka ghee, jeera and hing. Mix in.', 'Serve hot with ghee, curd and jaggery. Warm winter food.']),
-  dish('churma', ['Churma', 'चूरमा', 'ચુરમું'], 'rajasthani', 'sweet', 'LD', { moods: ['special'], fancy: 4, time: 45, spicy: false },
+  dish('churma', ['Churma', 'चूरमा', 'ચુરમું'], 'rajasthani', 'sweet', 'LD', { moods: ['special'], fancy: 4, time: 45, spicy: false, serves: 8 },
     [['atta', 250, 'g'], ['rava', 2, 'tbsp'], ['ghee', 120, 'g'], ['jaggery', 120, 'g'], ['elaichi', 0.5, 'tsp'], ['almond', 10, 'pc'], ['water', 100, 'ml']],
     ['Knead a stiff dough with atta, rava, 3 tbsp ghee and water. Shape fists (muthiya) and fry on low till golden.', 'Cool and grind coarse.', 'Mix with remaining melted ghee, grated jaggery, elaichi and nuts. Shape ladoos or serve loose with dal baati.']),
   dish('cholar_dal', ['Cholar Dal', 'छोलार दाल', 'છોલાર દાળ'], 'bengali', 'dal', 'LD', { moods: ['special'], fancy: 2, time: 40, pairs: ['luchi'] },

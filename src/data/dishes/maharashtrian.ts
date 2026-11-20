@@ -38,10 +38,10 @@ export const MAHARASHTRIAN: Dish[] = [
   dish('kothimbir_vadi', ['Kothimbir Vadi', 'कोथिंबीर वडी', 'કોથમીર વડી'], 'maharashtrian', 'farsan', 'BS', { moods: ['special', 'chatpata'], fancy: 3, time: 45, veg: 'leafy' },
     [['coriander', 150, 'g'], ['besan', 150, 'g'], ['rice_flour', 2, 'tbsp'], ['ginger', 1, 'tsp'], ['green_chilli', 3, 'pc'], ['sesame', 1, 'tbsp'], ['turmeric', 0.5, 'tsp'], ['red_chilli', 0.5, 'tsp'], ['sugar', 1, 'tsp'], ['salt', 1, 'tsp'], ['water', 100, 'ml'], ['oil', 3, 'tbsp']],
     ['Mix chopped coriander with flours, ginger-chilli, sesame, spices, sugar and salt to a thick dough.', 'Shape into logs and steam 20 minutes.', 'Cool, slice and shallow fry till crisp.']),
-  dish('puran_poli', ['Puran Poli', 'पूरन पोली', 'પૂરણ પોળી'], 'maharashtrian', 'sweet', 'LD', { moods: ['special'], fancy: 4, time: 90, spicy: false },
+  dish('puran_poli', ['Puran Poli', 'पूरन पोली', 'પૂરણ પોળી'], 'maharashtrian', 'sweet', 'LD', { moods: ['special'], fancy: 4, time: 90, spicy: false, serves: 6 },
     [['chana_dal', 200, 'g'], ['jaggery', 200, 'g'], ['elaichi', 0.5, 'tsp'], ['atta', 200, 'g'], ['maida', 50, 'g'], ['oil', 2, 'tbsp'], ['turmeric', 0.25, 'tsp'], ['water', 600, 'ml'], ['ghee', 6, 'tbsp']],
     ['Cook chana dal soft, drain, and cook with jaggery till thick and dry. Grind with elaichi (puran).', 'Knead a very soft dough of atta, maida, oil and turmeric. Rest 1 hour.', 'Stuff a puran ball in dough, roll thin with rice flour dusting.', 'Cook on tawa with ghee on both sides. Serve with more ghee or katachi amti.']),
-  dish('ukadiche_modak', ['Ukadiche Modak', 'उकडीचे मोदक', 'ઉકડીચે મોદક'], 'maharashtrian', 'sweet', 'S', { moods: ['special'], fancy: 5, time: 75, spicy: false },
+  dish('ukadiche_modak', ['Ukadiche Modak', 'उकडीचे मोदक', 'ઉકડીચે મોદક'], 'maharashtrian', 'sweet', 'S', { moods: ['special'], fancy: 5, time: 75, spicy: false, serves: 6 },
     [['rice_flour', 200, 'g'], ['water', 250, 'ml'], ['ghee', 2, 'tbsp'], ['coconut', 200, 'g'], ['jaggery', 150, 'g'], ['elaichi', 0.5, 'tsp'], ['salt', 1, 'pinch']],
     ['Filling: cook coconut and jaggery till thick, add elaichi.', 'Boil water with ghee and salt, add rice flour, cover 5 minutes and knead smooth while warm.', 'Shape cups, fill and pleat into modak shape.', 'Steam 12 minutes. Serve with ghee.']),
 ];

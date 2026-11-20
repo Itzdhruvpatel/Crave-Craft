@@ -1,6 +1,6 @@
 import { MINERALS } from '../data/minerals.ts';
 import { grams, ingredient } from './scale.ts';
-import type { Diet, Dish, Nutrition } from './types.ts';
+import type { Diet, Dish, Nutrition, Profile } from './types.ts';
 
 const KEYS = ['kcal', 'protein', 'carbs', 'fat', 'fibre', 'sugar', 'sodium', 'iron', 'calcium'] as const;
 
@@ -8,10 +8,15 @@ export function emptyNutrition(): Nutrition {
   return { kcal: 0, protein: 0, carbs: 0, fat: 0, fibre: 0, sugar: 0, sodium: 0, iron: 0, calcium: 0 };
 }
 
+// Oil for deep frying stays mostly in the kadai; food soaks up about a third (NIN estimate for Indian fried snacks).
+const FRY_OIL_ABSORBED = 0.3;
+
 export function perServing(dish: Dish): Nutrition {
   const total = emptyNutrition();
+  const fried = /\bfr(y|ied)\b/i.test(dish.steps.join(' '));
   for (const [id, qty, unit] of dish.ings) {
-    const g = grams(id, qty, unit);
+    const fryingOil = fried && ingredient(id).kind === 'oil' && unit === 'tbsp' && qty >= 6;
+    const g = grams(id, qty, unit) * (fryingOil ? FRY_OIL_ABSORBED : 1);
     const n = [...ingredient(id).n, ...(MINERALS[id] ?? [0, 0])];
     KEYS.forEach((k, i) => (total[k] += (n[i] * g) / 100));
   }
@@ -70,21 +75,36 @@ export interface SideTip {
   dishIds: string[];
 }
 
-/** If a meal is short on protein or fibre, suggest up to 3 sides that fill the gap. */
-export function balanceTips(meal: Dish[], all: Dish[], diet: Diet): SideTip[] {
+/**
+ * If a meal is short on protein or fibre, suggest up to 3 sides that fill the gap.
+ * Sides come from what the family cooks and likes, and change from meal to meal:
+ * the best 9 are kept and the meal itself decides which 3 of them to show.
+ */
+export function balanceTips(meal: Dish[], all: Dish[], family: Pick<Profile, 'diet' | 'regions' | 'dislikes' | 'ratings'>): SideTip[] {
   const n = sumNutrition(meal.map(perServing));
   const inMeal = new Set(meal.map((d) => d.id));
-  const sides = all.filter((d) => d.course === 'side' && !inMeal.has(d.id) && fitsDiet(d, diet));
+  const sides = all.filter((d) => d.course === 'side' && !inMeal.has(d.id) && fitsDiet(d, family.diet) && !family.dislikes.includes(d.id));
+  const seed = [...meal.map((d) => d.id).join()].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 7);
   const tips: SideTip[] = [];
   for (const reason of ['protein', 'fibre'] as const) {
     if (n[reason] >= MEAL_TARGET[reason]) continue;
-    const best = sides
-      .map((d) => ({ id: d.id, v: perServing(d)[reason] }))
-      .filter((x) => x.v >= 2)
-      .sort((a, b) => b.v - a.v)
-      .slice(0, 3)
-      .map((x) => x.id);
-    if (best.length) tips.push({ reason, dishIds: best });
+    const pool = sides
+      .map((d) => {
+        const p = perServing(d);
+        const v = p[reason];
+        const home = family.regions.includes(d.cuisine) || d.cuisine === 'pan' ? 1.5 : 1;
+        const liked = { 1: 2, 0: 1, [-1]: 0.3 }[family.ratings?.[d.id] ?? 0];
+        // A real fix, not just a big plate: per 100 kcal, at least 4 g protein or 2 g fibre.
+        const dense = (v / Math.max(p.kcal, 1)) * 100 >= (reason === 'protein' ? 4 : 2);
+        return { id: d.id, v, dense, score: v * home * liked };
+      })
+      .filter((x) => x.v >= 2 && x.dense)
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 9);
+    const start = seed % Math.max(pool.length, 1);
+    const pick = [0, 1, 2].map((k) => pool[(start + k * 3) % pool.length]).filter(Boolean);
+    const ids = [...new Set(pick.map((x) => x.id))];
+    if (ids.length) tips.push({ reason, dishIds: ids });
   }
   return tips;
 }
