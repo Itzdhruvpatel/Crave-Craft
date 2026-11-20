@@ -5,11 +5,15 @@ import { Pressable, ScrollView, Switch, View, useWindowDimensions } from 'react-
 import { Stepper } from '@/components/stepper';
 import { C, Circle, DishPhoto, Glass, Headline, IconPill, Row, Screen, T, TopBar, photoOf, useLang } from '@/components/ui';
 import { DISHES, DISH_BY_ID } from '@/data/dishes/index.ts';
-import { nameIn } from '@/lib/i18n.ts';
+import { fastsOn } from '@/lib/fasts.ts';
+import { isOily } from '@/lib/health.ts';
+import { weekReport, type Light } from '@/lib/nutrition.ts';
+import { nameIn, type StrKey } from '@/lib/i18n.ts';
 import { SLOTS, isoDate, swapDish } from '@/lib/planner.ts';
 import { newWeek, setGuests, setPlan, useApp, useT } from '@/state';
 
 const HERO = ['sabji', 'oneDish', 'breakfast', 'farsan'];
+const LIGHT: Record<Light, string> = { green: '#7BE07B', amber: '#FFC15A', red: '#FF6B6B' };
 
 export default function Week() {
   const { profile, plan } = useApp();
@@ -35,6 +39,7 @@ export default function Week() {
         right={
           <IconPill>
             <Circle icon="refresh" label={t('regenerate')} kind="glass" size={40} onPress={() => newWeek(fastDays)} />
+            <Circle icon="briefcase-outline" label={`${t('tiffinA')} ${t('tiffinB')}`} kind="glass" size={40} onPress={() => router.push('/tiffin')} />
             <Circle icon="cart-outline" label={`${t('groceryA')} ${t('groceryB')}`} size={40} onPress={() => router.push('/grocery')} />
           </IconPill>
         }
@@ -65,7 +70,11 @@ export default function Week() {
         })}
       </ScrollView>
 
-      <T dim>{day ? new Date(`${day.date}T00:00:00`).toLocaleDateString(locale, { weekday: 'long', day: 'numeric', month: 'long' }) : ''}</T>
+      <T dim>
+        {day ? new Date(`${day.date}T00:00:00`).toLocaleDateString(locale, { weekday: 'long', day: 'numeric', month: 'long' }) : ''}
+        {day?.justice ? `  ·  ⚖️ ${t('justiceBadge')}` : ''}
+        {day ? fastsOn(new Date(`${day.date}T00:00:00`), profile?.fasts ?? []).map((f) => `  ·  🙏 ${t(`fast_${f}` as StrKey)}`).join('') : ''}
+      </T>
 
       {day && plan && (
         <View style={{ marginHorizontal: -20 }}>
@@ -133,6 +142,28 @@ export default function Week() {
               accessibilityLabel={t('fastDay')}
             />
           </Row>
+        </Glass>
+      )}
+
+      {plan && (
+        <Glass style={{ padding: 18, gap: 12 }}>
+          <T kind="h2">{t('weekCheck')}</T>
+          {(() => {
+            const r = weekReport(plan, DISH_BY_ID, isOily);
+            const rows = [
+              ['wk_protein', `${r.protein.value} g`, r.protein.light],
+              ['wk_veggies', `${r.veggies.value} / 7`, r.veggies.light],
+              ['wk_fried', String(r.fried.value), r.fried.light],
+              ['wk_outside', String(r.outside.value), r.outside.light],
+            ] as const;
+            return rows.map(([key, value, light]) => (
+              <Row key={key} style={{ gap: 12 }}>
+                <View style={{ width: 12, height: 12, borderRadius: 6, backgroundColor: LIGHT[light] }} />
+                <T style={{ flex: 1 }}>{t(key)}</T>
+                <T kind="label">{value}</T>
+              </Row>
+            ));
+          })()}
         </Glass>
       )}
 

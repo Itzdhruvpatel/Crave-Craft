@@ -3,16 +3,18 @@ import type { ReactNode } from 'react';
 import { Alert, Platform, Pressable, Switch, View } from 'react-native';
 
 import { signOut, useSession } from '@/auth';
+import { MembersEditor } from '@/components/members';
 import { Stepper } from '@/components/stepper';
 import { Button, C, Chip, Circle, DishRow, Glass, Headline, Row, Screen, T, TopBar, photoOf } from '@/components/ui';
 import { DISH_BY_ID } from '@/data/dishes/index.ts';
-import { CUISINE_LABEL, DIET_LABEL, HOME_STYLES, LANGS, SPICE_LABEL, nameIn, toggleStyle } from '@/lib/i18n.ts';
-import type { Diet, Profile, SpiceLevel } from '@/lib/types.ts';
+import { CUISINE_LABEL, DIET_LABEL, HOME_STYLES, LANGS, SPICE_LABEL, nameIn, toggleStyle, type StrKey } from '@/lib/i18n.ts';
+import type { Diet, Fast, Profile, SpiceLevel } from '@/lib/types.ts';
 import { cancelMorningMenu, scheduleMorningMenu } from '@/notify';
 import { leaveGuest, newWeek, resetAll, setProfile, setReminder, setSimple, toggleDislike, useApp, useT } from '@/state';
 
 const DIETS: Diet[] = ['veg', 'jain', 'egg', 'nonveg'];
 const SPICES: SpiceLevel[] = ['low', 'medium', 'high'];
+const FASTS: Fast[] = ['ekadashi', 'navratri', 'shravan'];
 
 function Group({ title, children }: { title: string; children: ReactNode }) {
   return (
@@ -152,6 +154,35 @@ export default function Settings() {
         </Row>
       </Glass>
 
+      <MembersEditor
+        members={p.members ?? []}
+        onChange={(members) => {
+          const allergies = (m: typeof members) => m.flatMap((x) => x.allergies).sort().join();
+          // A new allergy can make this week's plan unsafe, so re-plan; other edits just steer next week.
+          up({ members }, allergies(members) !== allergies(p.members ?? []));
+        }}
+      />
+
+      <Group title={`🙏 ${t('fastsKept')}`}>
+        <T kind="small" dim>
+          {t('fastsHint')}
+        </T>
+        <Wrap>
+          {FASTS.map((f) => {
+            const on = (p.fasts ?? []).includes(f);
+            return (
+              <Chip
+                key={f}
+                icon={on ? 'checkmark' : undefined}
+                label={t(`fast_${f}` as StrKey)}
+                on={on}
+                onPress={() => up({ fasts: on ? (p.fasts ?? []).filter((x) => x !== f) : [...(p.fasts ?? []), f] }, true)}
+              />
+            );
+          })}
+        </Wrap>
+      </Group>
+
       <Group title={t('spice')}>
         <Wrap>
           {SPICES.map((s, i) => (
@@ -159,6 +190,25 @@ export default function Settings() {
           ))}
         </Wrap>
       </Group>
+
+      <Glass style={{ padding: 18 }}>
+        <Row style={{ gap: 14 }}>
+          <Circle icon="scale-outline" label={t('justice')} kind={p.justice ? 'lime' : 'glass'} size={44} />
+          <View style={{ flex: 1 }}>
+            <T kind="label">⚖️ {t('justice')}</T>
+            <T kind="small" dim>
+              {t('justiceHint')}
+            </T>
+          </View>
+          <Switch
+            value={!!p.justice}
+            onValueChange={(justice) => up({ justice }, true)}
+            trackColor={{ true: C.accent, false: 'rgba(255,255,255,0.2)' }}
+            thumbColor={C.white}
+            accessibilityLabel={t('justice')}
+          />
+        </Row>
+      </Glass>
 
       {p.dislikes.length > 0 && (
         <Group title={t('notAFan')}>

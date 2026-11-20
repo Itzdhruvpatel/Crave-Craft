@@ -28,6 +28,7 @@
     "expo-symbols": "~58.0.5",
     "expo-system-ui": "~58.0.7",
     "expo-web-browser": "~58.0.8",
+    "qrcode": "^1.5.4",
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "react-native": "0.88.1",
@@ -40,6 +41,7 @@
   },
   "devDependencies": {
     "@types/node": "^22.20.5",
+    "@types/qrcode": "^1.5.5",
     "@types/react": "~19.3.0",
     "eslint": "^9.0.0",
     "eslint-config-expo": "~58.0.4",

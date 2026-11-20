@@ -240,3 +240,67 @@ test('clock shows hours for long countdowns', () => {
   assert.equal(clock(65), '1:05');
   assert.equal(clock(3725), '1:02:05');
 });
+
+test('guest days may go past the weekly fancy limit', () => {
+  const plan = planWeek(DISHES, profile, { start: new Date(2026, 10, 16), seed: 9, guestDays: [0, 1, 2, 3, 4, 5, 6] });
+  const fancy = allIds(plan).filter((id) => DISH_BY_ID.get(id)!.fancy >= 4).length;
+  assert.ok(fancy > LIMITS.fancy, `${fancy}`);
+});
+
+test('vegetable justice brings back one disliked sabji on a weekday lunch', () => {
+  const hated = 'bhinda_nu_shaak';
+  const plan = planWeek(DISHES, { ...profile, dislikes: [hated], justice: true }, { start: new Date(2026, 10, 16), seed: 4 });
+  const day = plan.find((d) => d.justice === hated);
+  assert.ok(day, 'no justice day');
+  assert.ok(day.lunch.includes(hated));
+  const dow = new Date(`${day.date}T00:00:00`).getDay();
+  assert.ok(dow !== 0 && dow !== 6);
+});
+
+test('allergies keep dishes off the plan; low salt and low oil trim the recipe', async () => {
+  const { allergensIn, healthAdjust, familyNeeds } = await import('./health.ts');
+  const members = [{ name: 'Dadi', age: 'senior' as const, health: ['lowSalt' as const, 'lowOil' as const], allergies: ['peanut' as const] }];
+  const p = { ...profile, members };
+  const plan = planWeek(DISHES, p, { start: new Date(2026, 10, 16), seed: 2 });
+  for (const id of allIds(plan)) assert.deepEqual(allergensIn(DISH_BY_ID.get(id)!, ['peanut']), [], id);
+  const adj = healthAdjust([{ id: 'salt', qty: 4, unit: 'tsp' }, { id: 'oil', qty: 2, unit: 'tbsp' }, { id: 'rice', qty: 100, unit: 'g' }], familyNeeds(p));
+  assert.deepEqual(adj.map((i) => i.qty), [3, 1.4, 100]);
+});
+
+test('fast days match the 2026 panchang', async () => {
+  const { fastsOn } = await import('./fasts.ts');
+  const days = (kind: 'ekadashi' | 'navratri' | 'shravan') => {
+    const out: string[] = [];
+    for (let d = new Date(2026, 0, 1); d.getFullYear() === 2026; d.setDate(d.getDate() + 1)) {
+      if (fastsOn(d, [kind]).length) out.push(`${d.getMonth() + 1}/${d.getDate()}`);
+    }
+    return out;
+  };
+  const ek = days('ekadashi');
+  assert.equal(ek.length, 24);
+  for (const known of ['1/14', '1/29', '2/13', '2/27', '3/15', '3/29', '4/27', '7/25', '8/9', '10/6', '11/5', '12/4', '12/20']) assert.ok(ek.includes(known), known);
+  const nav = days('navratri');
+  assert.deepEqual([nav[0], nav[8], nav[9], nav[17], nav.length], ['3/19', '3/27', '10/11', '10/19', 18]);
+});
+
+test('nutrition includes iron and calcium; week card scores a plan', async () => {
+  const { weekReport } = await import('./nutrition.ts');
+  const { isOily } = await import('./health.ts');
+  const palak = perServing(DISH_BY_ID.get('palak_paneer') ?? DISHES.find((d) => d.ings.some(([id]) => id === 'paneer'))!);
+  assert.ok(palak.calcium > 50, `${palak.calcium}`);
+  assert.ok(palak.iron > 0);
+  const plan = planWeek(DISHES, profile, { start: new Date(2026, 10, 16), seed: 8 });
+  const r = weekReport(plan, DISH_BY_ID, isOily);
+  assert.ok(r.veggies.value >= 4, JSON.stringify(r));
+  assert.ok(r.outside.value <= LIMITS.outside);
+  for (const k of ['protein', 'veggies', 'fried', 'outside'] as const) assert.ok(['green', 'amber', 'red'].includes(r[k].light));
+});
+
+test('tiffin: dry boxes Monday to Saturday, none on Sunday, no repeats', () => {
+  const plan = planWeek(DISHES, profile, { start: new Date(2026, 10, 16), seed: 12 });
+  const boxes = plan.map((d) => d.tiffin ?? []);
+  assert.equal(boxes[6].length, 0);
+  for (const b of boxes.slice(0, 6)) assert.ok(b.length >= 1);
+  const mains = boxes.flat().filter((id) => id !== 'rotli');
+  assert.equal(new Set(mains).size, mains.length);
+});

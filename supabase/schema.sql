@@ -128,6 +128,15 @@ begin
 end;
 $$;
 
+-- Approved bribes become chores. The kid who promised it (or the HOD) ticks it off; nothing else changes.
+alter table petitions add column if not exists paid boolean not null default false;
+
+create or replace function pay_bribe(petition bigint) returns void
+language sql security definer set search_path = public as $$
+  update petitions set paid = true
+  where id = petition and status = 'approved' and (user_id = auth.uid() or is_hod(family_id));
+$$;
+
 alter table families enable row level security;
 alter table members enable row level security;
 alter table menus enable row level security;

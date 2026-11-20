@@ -801,7 +801,7 @@ export const PHOTOS: Record<string, Photo> = {
   },
   gatte_sabzi: {
     uri: "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/ac/Besan_Gatta_curry03.jpg/960px-Besan_Gatta_curry03.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-    author: "EAT&amp;ART TARO",
+    author: "EAT&ART TARO",
     license: "CC BY-SA 4.0",
     page: "https://commons.wikimedia.org/wiki/File:Besan_Gatta_curry03.jpg",
   },
@@ -1044,5 +1044,47 @@ export const PHOTOS: Record<string, Photo> = {
     author: "Gaurav Dhwaj Khadka",
     license: "CC BY-SA 3.0",
     page: "https://commons.wikimedia.org/wiki/File:Mutton_Curry_(44786).jpg",
+  },
+  mag: {
+    uri: "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/18/Moong_Dal_Curry_on_a_Roti.jpg/960px-Moong_Dal_Curry_on_a_Roti.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+    author: "Gaurav Dhwaj Khadka",
+    license: "CC BY-SA 4.0",
+    page: "https://commons.wikimedia.org/wiki/File:Moong_Dal_Curry_on_a_Roti.jpg",
+  },
+  sprouts_salad: {
+    uri: "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/cd/Sprouts_Salad_with_Corn.JPG/960px-Sprouts_Salad_with_Corn.JPG?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+    author: "Kumawat10",
+    license: "CC BY-SA 4.0",
+    page: "https://commons.wikimedia.org/wiki/File:Sprouts_Salad_with_Corn.JPG",
+  },
+  lilva_kachori: {
+    uri: "https://upload.wikimedia.org/wikipedia/commons/2/2e/Cachuri2_flipped.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+    author: "Cachuri2.jpg: Ibán Yarza\nderivative work: DouglasHeld (talk)",
+    license: "CC BY-SA 3.0",
+    page: "https://commons.wikimedia.org/wiki/File:Cachuri2_flipped.jpg",
+  },
+  masoor_dal: {
+    uri: "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/8d/Lal_Masoor_Dal_and_Palak.JPG/960px-Lal_Masoor_Dal_and_Palak.JPG?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+    author: "Miansari66",
+    license: "CC0",
+    page: "https://commons.wikimedia.org/wiki/File:Lal_Masoor_Dal_and_Palak.JPG",
+  },
+  chana_sundal: {
+    uri: "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/5d/Sundal_pori.jpg/960px-Sundal_pori.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+    author: "Madhavan M murugaiyan",
+    license: "CC0",
+    page: "https://commons.wikimedia.org/wiki/File:Sundal_pori.jpg",
+  },
+  matki_usal: {
+    uri: "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/2e/Matki_sprout_usal_chapati_ambehalad_pickel_taak_salad.jpg/960px-Matki_sprout_usal_chapati_ambehalad_pickel_taak_salad.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+    author: "Meena Kharatmal",
+    license: "CC BY-SA 4.0",
+    page: "https://commons.wikimedia.org/wiki/File:Matki_sprout_usal_chapati_ambehalad_pickel_taak_salad.jpg",
+  },
+  mix_veg: {
+    uri: "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/55/Mix_veg_Bhaja.jpg/960px-Mix_veg_Bhaja.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+    author: "Sattwik03",
+    license: "CC BY-SA 4.0",
+    page: "https://commons.wikimedia.org/wiki/File:Mix_veg_Bhaja.jpg",
   },
 };

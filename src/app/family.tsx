@@ -1,9 +1,11 @@
-import { router } from 'expo-router';
+import * as Linking from 'expo-linking';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Pressable, ScrollView, Share, Switch, TextInput, View } from 'react-native';
 
 import { authReady, useSession } from '@/auth';
 import { Button, C, Chip, Circle, DishPhoto, DishRow, Glass, Headline, Row, Screen, T, TopBar, photoOf, useLang } from '@/components/ui';
+import { Qr } from '@/components/qr';
 import { font } from '@/constants/fonts';
 import { DISHES, DISH_BY_ID } from '@/data/dishes/index.ts';
 import {
@@ -14,6 +16,7 @@ import {
   filePetition,
   joinFamily,
   markEating,
+  payBribe,
   publishWeek,
   sendMessage,
   useFamily,
@@ -114,7 +117,8 @@ export default function FamilyScreen() {
               icon="share-social-outline"
               label={t('inviteCode')}
               kind="glass"
-              onPress={() => Share.share({ message: `${t('inviteMsg')} ${fam.family!.invite_code}` })}
+              onPress={() => Share.share({ message: `${t('inviteMsg')} ${fam.family!.invite_code}
+${Linking.createURL(`join/${fam.family!.invite_code}`)}` })}
             />
           ) : undefined
         }
@@ -152,6 +156,10 @@ export default function FamilyScreen() {
         <T kind="display" style={{ letterSpacing: 6 }} weight={600}>
           {fam.family?.invite_code}
         </T>
+        {fam.family && <Qr value={Linking.createURL(`join/${fam.family.invite_code}`)} />}
+        <T kind="small" dim>
+          {t('scanToJoin')}
+        </T>
         <T kind="small" dim>
           {fam.members.map((m) => m.display_name).join(', ')}
         </T>
@@ -166,10 +174,12 @@ type Run = (fn: () => Promise<unknown>, done?: string) => Promise<void>;
 function Setup({ busy, note, run, back }: { busy: boolean; note: string; run: Run; back: React.ReactNode }) {
   const t = useT();
   const lang = useLang();
-  const [mode, setMode] = useState<'create' | 'join'>('create');
+  // Arriving from an invite QR or link: open on Join with the code filled in.
+  const invited = useLocalSearchParams<{ code?: string }>().code?.toUpperCase() ?? '';
+  const [mode, setMode] = useState<'create' | 'join'>(invited ? 'join' : 'create');
   const [familyName, setFamilyName] = useState('');
   const [name, setName] = useState('');
-  const [code, setCode] = useState('');
+  const [code, setCode] = useState(invited);
   return (
     <Screen photo={photoOf('undhiyu')} tabs={false}>
       <TopBar left={back} title={`${t('familyA')} ${t('familyB')}`} />
@@ -388,9 +398,12 @@ function PollsTab({ fam, userId, diet, busy, run }: { fam: Fam; userId: string; 
           <Glass key={p.id} style={{ padding: 18, gap: 12 }}>
             <T kind="h2">{p.question}</T>
             {p.winner && (
-              <T kind="label" color={C.accent}>
-                {t('winner')} {nameIn(DISH_BY_ID.get(p.winner)!.name, lang)}
-              </T>
+              <Row style={{ gap: 10, justifyContent: 'space-between' }}>
+                <T kind="label" color={C.accent} style={{ flex: 1 }}>
+                  {t('winner')} {nameIn(DISH_BY_ID.get(p.winner)!.name, lang)}
+                </T>
+                {top && top.n > votes.filter((v) => v.dish_id === p.winner).length && <Stamp label={t('veto')} color="#FF6B6B" />}
+              </Row>
             )}
             {p.dish_ids.map((id) => {
               const d = DISH_BY_ID.get(id);
@@ -398,31 +411,50 @@ function PollsTab({ fam, userId, diet, busy, run }: { fam: Fam; userId: string; 
               const n = votes.filter((v) => v.dish_id === id).length;
               const share = votes.length ? n / votes.length : 0;
               return (
-                <Pressable key={id} accessibilityRole="button" disabled={!open} onPress={() => run(() => vote(p.id, userId, id))}>
-                  <Row style={{ gap: 12 }}>
-                    <DishPhoto dish={d} size={48} round />
-                    <View style={{ flex: 1, gap: 6 }}>
-                      <Row style={{ justifyContent: 'space-between' }}>
-                        <T kind="label" weight={myVote === id ? 600 : 400}>
-                          {myVote === id ? '✓ ' : ''}
-                          {nameIn(d.name, lang)}
-                        </T>
-                        <T kind="small" dim>
-                          {n} {t('votes')}
-                        </T>
-                      </Row>
-                      <View style={{ height: 6, borderRadius: 3, backgroundColor: 'rgba(255,255,255,0.1)' }}>
-                        <View style={{ width: `${share * 100}%`, height: 6, borderRadius: 3, backgroundColor: C.accent }} />
+                <View key={id}>
+                  <Pressable accessibilityRole="button" disabled={!open} onPress={() => run(() => vote(p.id, userId, id))}>
+                    <Row style={{ gap: 12 }}>
+                      <DishPhoto dish={d} size={48} round />
+                      <View style={{ flex: 1, gap: 6 }}>
+                        <Row style={{ justifyContent: 'space-between' }}>
+                          <T kind="label" weight={myVote === id ? 600 : 400}>
+                            {myVote === id ? '✓ ' : ''}
+                            {nameIn(d.name, lang)}
+                          </T>
+                          <T kind="small" dim>
+                            {n} {t('votes')}
+                          </T>
+                        </Row>
+                        <View style={{ height: 6, borderRadius: 3, backgroundColor: 'rgba(255,255,255,0.1)' }}>
+                          <View style={{ width: `${share * 100}%`, height: 6, borderRadius: 3, backgroundColor: C.accent }} />
+                        </View>
                       </View>
-                    </View>
-                  </Row>
-                </Pressable>
+                    </Row>
+                  </Pressable>
+                  {fam.isHod && open && (
+                    <Pressable accessibilityRole="button" onPress={() => run(() => closePoll(p.id, id))} style={{ alignSelf: 'flex-end', paddingTop: 6 }}>
+                      <T kind="tiny" color={C.accent}>
+                        {t('pickThis')}
+                      </T>
+                    </Pressable>
+                  )}
+                </View>
               );
             })}
             {fam.isHod && open && top && <Button label={t('closePoll')} kind="white" onPress={() => run(() => closePoll(p.id, top.id))} />}
           </Glass>
         );
       })}
+    </View>
+  );
+}
+
+function Stamp({ label, color }: { label: string; color: string }) {
+  return (
+    <View style={{ borderWidth: 2, borderColor: color, borderRadius: 8, paddingHorizontal: 8, paddingVertical: 2, transform: [{ rotate: '-6deg' }] }}>
+      <T kind="tiny" weight={700} color={color}>
+        {label}
+      </T>
     </View>
   );
 }
@@ -435,6 +467,7 @@ function PetitionsTab({ fam, userId, diet, today, busy, run }: { fam: Fam; userI
   const [bribe, setBribe] = useState('');
   const ideas = t('bribeIdeas').split('|');
   const nameOf = (uid: string) => fam.members.find((m) => m.user_id === uid)?.display_name ?? '';
+  const due = fam.petitions.filter((p) => p.status === 'approved' && p.bribe && !p.paid);
 
   return (
     <View style={{ gap: 16 }}>
@@ -468,6 +501,17 @@ function PetitionsTab({ fam, userId, diet, today, busy, run }: { fam: Fam; userI
         </Glass>
       )}
 
+      {due.length > 0 && (
+        <Glass style={{ padding: 18, gap: 8 }} tint="rgba(255,193,90,0.10)">
+          <T kind="h2">🧽 {t('bribesDue')}</T>
+          {due.map((p) => (
+            <T key={p.id} kind="small">
+              {nameOf(p.user_id)}: {p.bribe}
+            </T>
+          ))}
+        </Glass>
+      )}
+
       {fam.petitions.map((p: Petition) => {
         const d = DISH_BY_ID.get(p.dish_id);
         if (!d) return null;
@@ -483,13 +527,23 @@ function PetitionsTab({ fam, userId, diet, today, busy, run }: { fam: Fam; userI
                   {p.meal ? ` · ${t(p.meal as Slot)}` : ''}
                 </T>
               </View>
-              <View style={{ borderWidth: 2, borderColor: stamp, borderRadius: 8, paddingHorizontal: 8, paddingVertical: 2, transform: [{ rotate: '-6deg' }] }}>
-                <T kind="tiny" color={stamp}>
-                  {t(`status_${p.status}` as StrKey)}
-                </T>
-              </View>
+              <Stamp label={t(`status_${p.status}` as StrKey)} color={stamp} />
             </Row>
-            {p.bribe ? <T kind="small">🤝 {p.bribe}</T> : null}
+            {p.bribe ? (
+              <Row style={{ gap: 8 }}>
+                <T kind="small" style={{ flex: 1, textDecorationLine: p.paid ? 'line-through' : 'none' }}>
+                  🤝 {p.bribe}
+                </T>
+                {p.status === 'approved' &&
+                  (p.paid ? (
+                    <T kind="tiny" color={C.accent}>
+                      ✓ {t('bribePaid')}
+                    </T>
+                  ) : (fam.isHod || p.user_id === userId) ? (
+                    <Chip label={t('markPaid')} onPress={() => run(() => payBribe(p.id))} />
+                  ) : null)}
+              </Row>
+            ) : null}
             {fam.isHod && p.status === 'pending' && (
               <Row style={{ gap: 8 }}>
                 <Button label={t('approve')} onPress={() => run(() => decidePetition(p.id, 'approved'))} style={{ flex: 1 }} />

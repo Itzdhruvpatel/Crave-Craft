@@ -54,6 +54,8 @@ export interface Petition {
   for_day: string | null;
   bribe: string | null;
   status: 'pending' | 'approved' | 'rejected' | 'later';
+  /** an approved bribe has been paid back (onions chopped, dishes washed) */
+  paid: boolean;
   created_at: string;
 }
 export interface Attendance {
@@ -123,6 +125,10 @@ export async function filePetition(familyId: string, userId: string, dishId: str
   await check(db().from('petitions').insert({ family_id: familyId, user_id: userId, dish_id: dishId, meal, for_day: forDay, bribe }));
 }
 
+export async function payBribe(id: number) {
+  await check(db().rpc('pay_bribe', { petition: id }));
+}
+
 export async function decidePetition(id: number, status: Petition['status']) {
   await check(db().from('petitions').update({ status, decided_at: new Date().toISOString() }).eq('id', id));
 }
@@ -168,7 +174,7 @@ export function useFamily(userId: string | undefined, today: string, onEvent?: (
         check(supabase.from('menus').select('day,breakfast,lunch,dinner,fast,hidden_until').eq('family_id', familyId).gte('day', today).order('day')),
         check(supabase.from('messages').select('id,user_id,body,dish_id,created_at').eq('family_id', familyId).order('created_at', { ascending: false }).limit(60)),
         check(supabase.from('polls').select('id,question,dish_ids,closes_at,winner').eq('family_id', familyId).order('id', { ascending: false }).limit(10)),
-        check(supabase.from('petitions').select('id,user_id,dish_id,meal,for_day,bribe,status,created_at').eq('family_id', familyId).order('id', { ascending: false }).limit(30)),
+        check(supabase.from('petitions').select('id,user_id,dish_id,meal,for_day,bribe,status,paid,created_at').eq('family_id', familyId).order('id', { ascending: false }).limit(30)),
         check(supabase.from('attendance').select('user_id,meal,eating').eq('family_id', familyId).eq('day', today)),
       ]);
       const pollIds = (polls as Poll[]).map((p) => p.id);

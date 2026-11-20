@@ -32,6 +32,7 @@ export default function RootLayout() {
         <Stack.Screen name="onboarding" options={{ headerShown: false }} />
         <Stack.Screen name="dish/[id]" options={{ headerShown: false }} />
         <Stack.Screen name="grocery" options={{ headerShown: false }} />
+        <Stack.Screen name="tiffin" options={{ headerShown: false }} />
         <Stack.Screen name="fridge" options={{ headerShown: false }} />
         <Stack.Screen name="cook/[id]" options={{ headerShown: false, animation: 'fade' }} />
         <Stack.Screen name="family" options={{ headerShown: false }} />

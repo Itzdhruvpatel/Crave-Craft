@@ -85,6 +85,8 @@ export interface Nutrition {
   fibre: number;
   sugar: number;
   sodium: number;
+  iron: number;
+  calcium: number;
 }
 
 export interface Profile {
@@ -98,6 +100,24 @@ export interface Profile {
   dislikes: string[];
   /** after-meal taps: 1 loved it, 0 ok, -1 meh; steers the planner */
   ratings?: Record<string, Rating>;
+  /** Vegetable Justice: a disliked sabji still shows up once a week */
+  justice?: boolean;
+  /** people at home with their own needs (dadi diabetic, papa low salt) */
+  members?: Member[];
+  /** fasts the family keeps; those days get upvas food automatically */
+  fasts?: Fast[];
+}
+
+export type Fast = 'ekadashi' | 'navratri' | 'shravan';
+export type AgeGroup = 'kid' | 'adult' | 'senior';
+export type HealthTag = 'diabetic' | 'lowSalt' | 'lowOil';
+export type Allergen = 'peanut' | 'nuts' | 'dairy' | 'gluten' | 'sesame';
+
+export interface Member {
+  name: string;
+  age: AgeGroup;
+  health: HealthTag[];
+  allergies: Allergen[];
 }
 
 export type Rating = 1 | 0 | -1;

@@ -12,8 +12,9 @@ import { MaxContentWidth } from '@/constants/theme';
 import { DISHES, DISH_BY_ID } from '@/data/dishes/index.ts';
 import { PHOTOS } from '@/data/photos';
 import { stepsIn } from '@/data/steps.ts';
-import { COURSE_LABEL, CUISINE_LABEL, MOOD_LABEL, SPEECH_LANG, SPICE_LABEL, nameIn } from '@/lib/i18n.ts';
+import { COURSE_LABEL, CUISINE_LABEL, MOOD_LABEL, SPEECH_LANG, SPICE_LABEL, nameIn, type StrKey } from '@/lib/i18n.ts';
 import { MEAL_TARGET, balanceTips, jainSkips, perServing } from '@/lib/nutrition.ts';
+import { allergensIn, familyNeeds, healthAdjust } from '@/lib/health.ts';
 import { isoDate } from '@/lib/planner.ts';
 import { formatQty, ingredient, scaleDish } from '@/lib/scale.ts';
 import type { SpiceLevel } from '@/lib/types.ts';
@@ -47,7 +48,13 @@ export default function DishScreen() {
 
   const uri = photoOf(dish.id, 960);
   const skip = profile.diet === 'jain' ? jainSkips(dish) : [];
-  const ings = scaleDish(dish, people, spice).filter((i) => !skip.includes(i.id));
+  const needs = familyNeeds(profile);
+  const ings = healthAdjust(scaleDish(dish, people, spice), needs).filter((i) => !skip.includes(i.id));
+  const members = profile.members ?? [];
+  const risky = allergensIn(dish, needs.allergens);
+  const allergic = members.filter((m) => m.allergies.some((a) => risky.includes(a))).map((m) => m.name);
+  const diabetics = dish.course === 'sweet' ? members.filter((m) => m.health.includes('diabetic')).map((m) => m.name) : [];
+  const trimmedFor = members.filter((m) => m.health.includes('lowSalt') || m.health.includes('lowOil')).map((m) => m.name);
   const n = perServing(dish);
   const credit = PHOTOS[dish.id];
   const disliked = profile.dislikes.includes(dish.id);
@@ -152,6 +159,21 @@ export default function DishScreen() {
 
           <Glass style={{ padding: 20, gap: 4 }}>
             <Headline a="" b={t('ingredients')} size={26} />
+            {risky.length > 0 && (
+              <T kind="small" color="#FF6B6B" style={{ paddingVertical: 6 }}>
+                ⚠️ {t('allergyWarn')} {risky.map((a) => t(`allergy_${a}` as StrKey)).join(', ')}. {t('notFor')}: {allergic.join(', ')}
+              </T>
+            )}
+            {diabetics.length > 0 && (
+              <T kind="small" color={C.warn} style={{ paddingVertical: 6 }}>
+                🍬 {t('sugarWarn')}: {diabetics.join(', ')}
+              </T>
+            )}
+            {trimmedFor.length > 0 && (
+              <T kind="small" dim style={{ paddingVertical: 6 }}>
+                🧂 {t('trimmedNote')}: {trimmedFor.join(', ')}
+              </T>
+            )}
             {skip.length > 0 && (
               <T kind="small" color={C.warn} style={{ paddingVertical: 6 }}>
                 {t('jainNote')}: {skip.map((s) => nameIn(ingredient(s).name, lang)).join(', ')}
@@ -218,12 +240,14 @@ export default function DishScreen() {
                   <T kind="label">{Math.round(n[k])} g</T>
                 </View>
               ))}
-              <View style={{ width: '33%' }}>
-                <T kind="small" dim>
-                  {t('sodium')}
-                </T>
-                <T kind="label">{Math.round(n.sodium)} mg</T>
-              </View>
+              {(['sodium', 'iron', 'calcium'] as const).map((k) => (
+                <View key={k} style={{ width: '33%' }}>
+                  <T kind="small" dim>
+                    {t(k)}
+                  </T>
+                  <T kind="label">{k === 'iron' ? n.iron.toFixed(1) : Math.round(n[k])} mg</T>
+                </View>
+              ))}
             </Row>
             <T kind="tiny" dim>
               {t('approx')}

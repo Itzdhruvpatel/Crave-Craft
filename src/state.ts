@@ -2,7 +2,8 @@ import { useSyncExternalStore } from 'react';
 
 import { DISHES } from '@/data/dishes/index.ts';
 import { tr, type StrKey } from '@/lib/i18n.ts';
-import { isoDate, planWeek, type DayPlan } from '@/lib/planner.ts';
+import { fastsOn } from '@/lib/fasts.ts';
+import { isoDate, packTiffin, planWeek, replanDay, type DayPlan } from '@/lib/planner.ts';
 import { load, save } from '@/lib/storage';
 import type { Lang, Profile, Rating } from '@/lib/types.ts';
 
@@ -105,16 +106,47 @@ export function setProfile(profile: Profile) {
   set({ profile, lang: profile.lang });
 }
 
-export function newWeek(fastDays: number[] = []) {
+/** Fresh plan for this week. Without `fastDays`, the family's fasts (Ekadashi...) are found by date. */
+export function newWeek(fastDays?: number[]) {
   if (!state.profile) return;
+  const keep = state.profile.fasts ?? [];
   // A new plan means a new shopping list.
   const guests = new Map(state.plan?.map((d) => [d.date, d.guests]));
-  const plan = planWeek(DISHES, state.profile, { start: startOfWeek(), fastDays }).map((d) => ({ ...d, guests: guests.get(d.date) }));
+  const start = startOfWeek();
+  const guestDays = [...Array(7).keys()].filter((i) => {
+    const d = new Date(start);
+    d.setDate(d.getDate() + i);
+    return !!guests.get(isoDate(d));
+  });
+  fastDays ??= [...Array(7).keys()].filter((i) => {
+    const d = new Date(start);
+    d.setDate(d.getDate() + i);
+    return fastsOn(d, keep).length > 0;
+  });
+  const plan = planWeek(DISHES, state.profile, { start, fastDays, guestDays }).map((d) => ({ ...d, guests: guests.get(d.date) }));
   set({ plan, bought: [] });
 }
 
+/** Guests arriving (or cancelling) re-picks that day's lunch and dinner; changing the count doesn't. */
 export function setGuests(date: string, guests: number) {
-  set({ plan: state.plan?.map((d) => (d.date === date ? { ...d, guests } : d)) ?? null });
+  if (!state.plan || !state.profile) return;
+  const i = state.plan.findIndex((d) => d.date === date);
+  if (i < 0) return;
+  const before = !!state.plan[i].guests;
+  let plan = state.plan.map((d, k) => (k === i ? { ...d, guests } : d));
+  if (before !== !!guests) plan = replanDay(plan, i, DISHES, state.profile);
+  set({ plan });
+}
+
+/** Another tiffin idea for one day; with no date, packs every day (plans made before tiffins existed). */
+export function rerollTiffin(date?: string) {
+  if (!state.plan || !state.profile) return;
+  const plan = [...state.plan];
+  plan.forEach((d, i) => {
+    if (date && d.date !== date) return;
+    plan[i] = { ...d, tiffin: packTiffin(d, DISHES, state.profile!, Math.random, plan) };
+  });
+  set({ plan });
 }
 
 /** Tapping the same face again clears the rating. */
