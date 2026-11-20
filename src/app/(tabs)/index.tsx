@@ -5,7 +5,7 @@ import { Pressable, ScrollView, View } from 'react-native';
 
 import { Button, C, Chip, Circle, DishPhoto, DishRow, Glass, Headline, IconPill, Row, Screen, T, TopBar, minutes, photoOf } from '@/components/ui';
 import { DISHES, DISH_BY_ID } from '@/data/dishes/index.ts';
-import { COURSE_LABEL, MOOD_LABEL, SPEECH_LANG, nameIn } from '@/lib/i18n.ts';
+import { COURSE_LABEL, MOOD_LABEL, SPEECH_LANG, ingName, nameIn } from '@/lib/i18n.ts';
 import { balanceTips, fitsDiet } from '@/lib/nutrition.ts';
 import { ingredient } from '@/lib/scale.ts';
 import { SLOTS, isoDate, type Slot } from '@/lib/planner.ts';
@@ -86,7 +86,7 @@ export default function Today() {
     d.ings
       .filter(([id]) => ingredient(id).kind === 'main' && id !== 'water')
       .slice(0, 4)
-      .map(([id]) => nameIn(ingredient(id).name, lang))
+      .map(([id]) => ingName(ingredient(id).name, lang))
       .join(', ');
 
   const toggle = (p: typeof pick) => setPick(pick === p ? null : p);

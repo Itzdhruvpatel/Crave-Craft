@@ -34,12 +34,26 @@ export function jainSkips(dish: Dish): string[] {
   return dish.ings.filter(([id]) => ingredient(id).notJain === 'skip').map(([id]) => id);
 }
 
+/** Swaminarayan: no onion family; garlic is simply left out. Roots are fine. */
+export function isSwami(dish: Dish): boolean {
+  return dish.diet === 'veg' && !dish.ings.some(([id]) => id === 'onion' || id === 'spring_onion');
+}
+
+/** Ingredients the family's diet drops from a recipe that otherwise fits. */
+export function dietSkips(dish: Dish, diet: Diet): string[] {
+  if (diet === 'jain') return jainSkips(dish);
+  if (diet === 'swami') return dish.ings.filter(([id]) => id === 'garlic').map(([id]) => id);
+  return [];
+}
+
 export function fitsDiet(dish: Dish, diet: Diet): boolean {
   switch (diet) {
     case 'veg':
       return dish.diet === 'veg';
     case 'jain':
       return isJain(dish);
+    case 'swami':
+      return isSwami(dish);
     case 'egg':
       return dish.diet !== 'nonveg';
     case 'nonveg':

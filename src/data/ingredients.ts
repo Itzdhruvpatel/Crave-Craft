@@ -214,5 +214,24 @@ export const INGREDIENTS: Record<string, Ingredient> = {
   mutton: i('Mutton', 'मटन', 'મટન', 'main', [143, 20, 0, 6.5, 0, 0, 72]),
   prawns: i('Prawns', 'झींगे', 'ઝીંગા', 'main', [99, 24, 0.2, 0.3, 0, 0, 111]),
 
+  // more regional produce and staples
+  mooli: i('Radish (mooli)', 'मूली', 'મૂળો', 'main', [16, 0.7, 3.4, 0.1, 1.6, 1.9, 39], { pc: 200, notJain: true }),
+  kalonji: i('Kalonji (nigella)', 'कलौंजी', 'કલોંજી', 'spice', [375, 17, 44, 22, 10, 0, 90], { tsp: 2.5 }),
+  saunth: i('Dry ginger powder', 'सोंठ', 'સૂંઠ', 'spice', [335, 9, 72, 4.2, 14, 3.4, 27], { tsp: 2 }),
+  kulith: i('Horse gram (kulith)', 'कुलथी', 'કળથી', 'main', [321, 22, 57, 0.5, 7.9, 0, 12], { tsp: 4 }),
+  raw_papaya: i('Raw papaya', 'कच्चा पपीता', 'કાચું પપૈયું', 'main', [32, 0.6, 7.2, 0.1, 2.6, 3, 7], { pc: 500 }),
+  kathal: i('Raw jackfruit', 'कच्चा कटहल', 'કાચું ફણસ', 'main', [51, 2.6, 9.4, 0.3, 4, 1, 2]),
+  chaulai: i('Amaranth leaves', 'चौलाई', 'તાંદળજો', 'main', [43, 4, 6, 0.5, 2, 0, 20]),
+  suva: i('Dill (suva)', 'सोआ', 'સુવા', 'main', [43, 3.5, 7, 1.1, 2.1, 0, 61]),
+  green_garlic: i('Green garlic', 'हरा लहसुन', 'લીલું લસણ', 'main', [62, 2, 12, 0.3, 2, 1, 17], { notJain: true }),
+  sattu: i('Sattu', 'सत्तू', 'સત્તુ', 'main', [413, 22, 65, 5.3, 18, 0, 64], { tsp: 3 }),
+  whole_masoor: i('Whole masoor', 'साबुत मसूर', 'આખા મસૂર', 'main', [343, 25, 59, 1.1, 11, 2, 6], { tsp: 4 }),
+  ker_sangri: i('Ker sangri (dried)', 'केर सांगरी', 'કેર સાંગરી', 'main', [300, 15, 50, 3, 30, 0, 30]),
+  gongura: i('Gongura leaves', 'गोंगुरा', 'ગોંગુરા', 'main', [56, 1.7, 10, 1.1, 3, 0, 10]),
+  rice_noodles: i('Idiyappam (rice noodles)', 'चावल की सेवई', 'ચોખાની સેવ', 'main', [364, 6, 81, 0.6, 1.6, 0, 6]),
+  coffee: i('Coffee powder', 'कॉफ़ी पाउडर', 'કોફી પાવડર', 'main', [2, 0.1, 0, 0, 0, 0, 2], { tsp: 2.5 }),
+  rose_water: i('Rose water', 'गुलाब जल', 'ગુલાબ જળ', 'main', [0, 0, 0, 0, 0, 0, 0], { tsp: 5 }),
+  bread_crumbs: i('Bread crumbs', 'ब्रेड क्रम्ब्स', 'બ્રેડ ક્રમ્બ્સ', 'main', [395, 13, 72, 5.3, 4.5, 6, 732], { tsp: 3 }),
+
   water: i('Water', 'पानी', 'પાણી', 'water', ZERO),
 };

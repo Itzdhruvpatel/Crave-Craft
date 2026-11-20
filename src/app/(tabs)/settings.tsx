@@ -12,7 +12,7 @@ import type { Diet, Fast, Profile, SpiceLevel } from '@/lib/types.ts';
 import { cancelMorningMenu, scheduleMorningMenu } from '@/notify';
 import { leaveGuest, newWeek, resetAll, setProfile, setReminder, setSimple, toggleDislike, useApp, useT } from '@/state';
 
-const DIETS: Diet[] = ['veg', 'jain', 'egg', 'nonveg'];
+const DIETS: Diet[] = ['veg', 'jain', 'swami', 'egg', 'nonveg'];
 const SPICES: SpiceLevel[] = ['low', 'medium', 'high'];
 const FASTS: Fast[] = ['ekadashi', 'navratri', 'shravan'];
 

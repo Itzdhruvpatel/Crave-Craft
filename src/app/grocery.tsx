@@ -6,7 +6,7 @@ import { Pressable, Share, View } from 'react-native';
 import { Button, C, Chip, Circle, Glass, Headline, Row, Screen, T, TopBar, photoOf } from '@/components/ui';
 import { DISH_BY_ID } from '@/data/dishes/index.ts';
 import { formatBuy, groceryList, type Aisle } from '@/lib/grocery.ts';
-import { nameIn, type StrKey } from '@/lib/i18n.ts';
+import { ingName, type StrKey } from '@/lib/i18n.ts';
 import { isoDate } from '@/lib/planner.ts';
 import { ingredient } from '@/lib/scale.ts';
 import { toggleBought, useApp, useT } from '@/state';
@@ -29,7 +29,7 @@ export default function Grocery() {
     const lines = AISLES.flatMap((a) => {
       const list = items.filter((i) => i.aisle === a && !bought.includes(i.id));
       if (!list.length) return [];
-      return [`*${t(`aisle_${a}` as StrKey)}*`, ...list.map((i) => `- ${nameIn(ingredient(i.id).name, lang)}: ${formatBuy(i)}`), ''];
+      return [`*${t(`aisle_${a}` as StrKey)}*`, ...list.map((i) => `- ${ingName(ingredient(i.id).name, lang)}: ${formatBuy(i)}`), ''];
     });
     Share.share({ message: `${t('groceryA')} ${t('groceryB')}\n\n${lines.join('\n')}` });
   };
@@ -84,7 +84,7 @@ export default function Grocery() {
                     {done && <Ionicons name="checkmark" size={16} color={C.ink} />}
                   </View>
                   <T style={{ flex: 1, textDecorationLine: done ? 'line-through' : 'none', opacity: done ? 0.5 : 1 }}>
-                    {nameIn(ingredient(i.id).name, lang)}
+                    {ingName(ingredient(i.id).name, lang)}
                   </T>
                   {a !== 'pantry' && (
                     <T kind="label" color={done ? C.textDim : C.accent}>

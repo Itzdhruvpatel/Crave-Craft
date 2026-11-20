@@ -1,3 +1,14 @@
+import {
+  RecordingPresets,
+  requestRecordingPermissionsAsync,
+  setAudioModeAsync,
+  useAudioPlayer,
+  useAudioPlayerStatus,
+  useAudioRecorder,
+  useAudioRecorderState,
+} from 'expo-audio';
+import { Image } from 'expo-image';
+import * as ImagePicker from 'expo-image-picker';
 import * as Linking from 'expo-linking';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -17,8 +28,13 @@ import {
   joinFamily,
   markEating,
   payBribe,
+  fileUrl,
   publishWeek,
+  react,
+  registerPush,
+  sendMedia,
   sendMessage,
+  setMuteChat,
   useFamily,
   vote,
   type Petition,
@@ -28,8 +44,8 @@ import { fitsDiet } from '@/lib/nutrition.ts';
 import { SLOTS, isoDate, type Slot } from '@/lib/planner.ts';
 import { clock } from '@/lib/timer.ts';
 import type { Diet } from '@/lib/types.ts';
-import { notifyNow } from '@/notify';
-import { leaveGuest, setGuess, useApp, useT } from '@/state';
+import { notifyNow, scheduleEatingAsk } from '@/notify';
+import { leaveGuest, mergeFamilyRatings, setGuess, useApp, useT } from '@/state';
 
 type Tab = 'today' | 'polls' | 'petitions' | 'chat';
 
@@ -68,6 +84,15 @@ export default function FamilyScreen() {
     [t],
   );
   const fam = useFamily(userId, today, alert);
+  const familyId = fam.family?.id;
+  useEffect(() => {
+    if (!familyId || !userId) return;
+    registerPush(familyId, userId).catch(() => {});
+    scheduleEatingAsk(`${t('familyA')} ${t('familyB')}`, t('eatingToday')).catch(() => {});
+  }, [familyId, userId, t]);
+  useEffect(() => {
+    if (userId) mergeFamilyRatings(fam.ratings, userId);
+  }, [fam.ratings, userId]);
 
   const run = async (fn: () => Promise<unknown>, done?: string) => {
     setBusy(true);
@@ -334,7 +359,32 @@ function TodayTab({ fam, plan, userId, today, busy, run }: { fam: Fam; plan: Ret
           );
         })
       )}
+      <WallCard fam={fam} today={today} />
     </View>
+  );
+}
+
+/** Thank-you wall and the dishes the family loved most, from everyone's taps. */
+function WallCard({ fam, today }: { fam: Fam; today: string }) {
+  const t = useT();
+  const lang = useLang();
+  const thankedToday = fam.members.filter((m) => fam.thanks.some((x) => x.user_id === m.user_id && x.day === today)).map((m) => m.display_name);
+  const score = new Map<string, number>();
+  for (const r of fam.ratings) score.set(r.dish_id, (score.get(r.dish_id) ?? 0) + r.rating);
+  const loved = [...score].filter(([id, s]) => s > 0 && DISH_BY_ID.has(id)).sort((a, b) => b[1] - a[1]).slice(0, 3);
+  return (
+    <Glass style={{ padding: 18, gap: 10 }}>
+      <T kind="h2">❤️ {t('thankMummy')}</T>
+      <T kind="small" dim>
+        {fam.thanks.length} {t('thanksTotal')}
+      </T>
+      {thankedToday.length > 0 && <T>🙏 {thankedToday.join(', ')}</T>}
+      {loved.length > 0 && (
+        <T kind="small">
+          😍 {t('familyLoved')}: {loved.map(([id]) => nameIn(DISH_BY_ID.get(id)!.name, lang)).join(', ')}
+        </T>
+      )}
+    </Glass>
   );
 }
 
@@ -558,24 +608,98 @@ function PetitionsTab({ fam, userId, diet, today, busy, run }: { fam: Fam; userI
   );
 }
 
+const EMOJIS = ['❤️', '😋', '😂', '👍', '🙏'];
+
+/** Plays a voice note from the family's private storage. */
+function VoiceNote({ path, dark }: { path: string; dark: boolean }) {
+  const t = useT();
+  const [url, setUrl] = useState<string | null>(null);
+  const player = useAudioPlayer(url);
+  const status = useAudioPlayerStatus(player);
+  useEffect(() => {
+    fileUrl(path).then(setUrl, () => {});
+  }, [path]);
+  const toggle = () => {
+    if (status.playing) return player.pause();
+    if (status.didJustFinish || status.currentTime >= status.duration) player.seekTo(0);
+    player.play();
+  };
+  return (
+    <Pressable onPress={toggle} disabled={!url} accessibilityRole="button" accessibilityLabel={t('playVoice')}>
+      <Row style={{ gap: 8, paddingVertical: 4 }}>
+        <T kind="h2" color={dark ? C.ink : C.accent}>
+          {status.playing ? '⏸' : '▶'}
+        </T>
+        <T color={dark ? C.ink : C.text}>🎤 {status.duration ? clock(status.duration) : '...'}</T>
+      </Row>
+    </Pressable>
+  );
+}
+
+function ChatPhoto({ path }: { path: string }) {
+  const [url, setUrl] = useState<string | null>(null);
+  useEffect(() => {
+    fileUrl(path).then(setUrl, () => {});
+  }, [path]);
+  return <Image source={url ? { uri: url } : undefined} style={{ width: 220, height: 220, borderRadius: 14, backgroundColor: 'rgba(0,0,0,0.2)' }} contentFit="cover" />;
+}
+
 function ChatTab({ fam, userId, run }: { fam: Fam; userId: string; run: Run }) {
   const t = useT();
   const lang = useLang();
   const [text, setText] = useState('');
+  const [picking, setPicking] = useState<number | null>(null);
+  const recorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
+  const rec = useAudioRecorderState(recorder);
   const nameOf = (uid: string) => fam.members.find((m) => m.user_id === uid)?.display_name ?? '';
+  const familyId = fam.family!.id;
   const send = () => {
     const body = text.trim();
     if (!body) return;
     setText('');
-    run(() => sendMessage(fam.family!.id, userId, body));
+    run(() => sendMessage(familyId, userId, body));
   };
+  const record = async () => {
+    if (rec.isRecording) {
+      await recorder.stop();
+      if (recorder.uri) run(() => sendMedia(familyId, userId, recorder.uri!, 'voice'));
+      return;
+    }
+    if (!(await requestRecordingPermissionsAsync()).granted) return;
+    await setAudioModeAsync({ allowsRecording: true, playsInSilentMode: true });
+    await recorder.prepareToRecordAsync();
+    recorder.record();
+  };
+  const photo = async () => {
+    const res = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.6 });
+    if (!res.canceled) run(() => sendMedia(familyId, userId, res.assets[0].uri, 'photo'));
+  };
+  const muted = fam.me?.mute_chat ?? false;
   return (
     <View style={{ gap: 10 }}>
+      <Row style={{ gap: 12 }}>
+        <T kind="small" dim style={{ flex: 1 }}>
+          🔕 {t('muteChat')}
+        </T>
+        <Switch
+          value={muted}
+          onValueChange={(v) => run(() => setMuteChat(familyId, userId, v))}
+          trackColor={{ true: C.accent, false: 'rgba(255,255,255,0.2)' }}
+          thumbColor={C.white}
+          accessibilityLabel={t('muteChat')}
+        />
+      </Row>
       {fam.messages.map((m) => {
         const mine = m.user_id === userId;
+        const reacts = fam.reactions.filter((r) => r.message_id === m.id);
+        const myReact = reacts.find((r) => r.user_id === userId)?.emoji;
+        const counts = EMOJIS.map((e) => [e, reacts.filter((r) => r.emoji === e).length] as const).filter(([, n]) => n);
         return (
-          <View key={m.id} style={{ alignItems: mine ? 'flex-end' : 'flex-start' }}>
-            <View
+          <View key={m.id} style={{ alignItems: mine ? 'flex-end' : 'flex-start', gap: 4 }}>
+            <Pressable
+              onLongPress={() => setPicking(picking === m.id ? null : m.id)}
+              delayLongPress={300}
+              accessibilityHint={t('reactHint')}
               style={{
                 maxWidth: '82%',
                 borderRadius: 20,
@@ -590,16 +714,39 @@ function ChatTab({ fam, userId, run }: { fam: Fam; userId: string; run: Run }) {
                   {nameOf(m.user_id)}
                 </T>
               )}
-              <T color={mine ? C.ink : C.text}>{m.body}</T>
+              {m.body ? <T color={mine ? C.ink : C.text}>{m.body}</T> : null}
+              {m.voice_path ? <VoiceNote path={m.voice_path} dark={mine} /> : null}
+              {m.photo_path ? <ChatPhoto path={m.photo_path} /> : null}
               <T kind="tiny" color={mine ? 'rgba(16,20,10,0.6)' : C.textDim}>
                 {new Date(m.created_at).toLocaleTimeString(lang === 'en' ? 'en-IN' : `${lang}-IN`, { hour: 'numeric', minute: '2-digit' })}
               </T>
-            </View>
+            </Pressable>
+            {counts.length > 0 && <T kind="small">{counts.map(([e, n]) => (n > 1 ? `${e}${n}` : e)).join(' ')}</T>}
+            {picking === m.id && (
+              <Row style={{ gap: 6 }}>
+                {EMOJIS.map((e) => (
+                  <Chip
+                    key={e}
+                    label={e}
+                    on={myReact === e}
+                    onPress={() => {
+                      setPicking(null);
+                      run(() => react(familyId, userId, m.id, e, myReact));
+                    }}
+                  />
+                ))}
+              </Row>
+            )}
           </View>
         );
       })}
+      {rec.isRecording && (
+        <T kind="label" color={C.warn}>
+          🔴 {t('recording')} {clock(rec.durationMillis / 1000)}
+        </T>
+      )}
       <Glass radius={999} style={{ marginTop: 6 }}>
-        <Row style={{ paddingLeft: 18, paddingRight: 6, gap: 8 }}>
+        <Row style={{ paddingLeft: 18, paddingRight: 6, gap: 6 }}>
           <TextInput
             value={text}
             onChangeText={setText}
@@ -609,7 +756,9 @@ function ChatTab({ fam, userId, run }: { fam: Fam; userId: string; run: Run }) {
             accessibilityLabel={t('typeMessage')}
             style={{ flex: 1, color: C.text, paddingVertical: 14, fontSize: 16, fontFamily: font(lang, 400) }}
           />
-          <Circle icon="send" label={t('send')} kind="lime" size={44} onPress={send} />
+          <Circle icon="image-outline" label={t('sendPhoto')} kind="glass" size={40} onPress={photo} />
+          <Circle icon={rec.isRecording ? 'stop' : 'mic'} label={rec.isRecording ? t('stopSend') : t('voiceNote')} kind={rec.isRecording ? 'lime' : 'glass'} size={40} onPress={record} />
+          {text.trim() ? <Circle icon="send" label={t('send')} kind="lime" size={44} onPress={send} /> : null}
         </Row>
       </Glass>
     </View>

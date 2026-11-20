@@ -1,7 +1,8 @@
-export type Lang = 'en' | 'hi' | 'gu';
-export type Names = { en: string; hi?: string; gu?: string };
+export type Lang = 'en' | 'hi' | 'gu' | 'mr' | 'pa' | 'bn' | 'ta' | 'te' | 'kn' | 'ml';
+/** English is always there; other languages are filled in where known. */
+export type Names = { en: string } & Partial<Record<Exclude<Lang, 'en'>, string>>;
 
-export type Diet = 'veg' | 'jain' | 'egg' | 'nonveg';
+export type Diet = 'veg' | 'jain' | 'swami' | 'egg' | 'nonveg';
 export type Meal = 'breakfast' | 'lunch' | 'dinner' | 'snack';
 export type Course =
   | 'breakfast'
@@ -41,7 +42,7 @@ export interface Dish {
   course: Course;
   meals: Meal[];
   /** jain-ness is derived from ingredients, see isJain() */
-  diet: Exclude<Diet, 'jain'>;
+  diet: Exclude<Diet, 'jain' | 'swami'>;
   upvas?: boolean;
   moods: Mood[];
   /** 1 = everyday ghar ka khana, 5 = party food */

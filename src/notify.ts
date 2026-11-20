@@ -37,6 +37,16 @@ export async function scheduleMorningMenu(hour: number, title: string, body: str
   return true;
 }
 
+/** 5 pm every day for family members: "Who's eating at home today?" */
+export async function scheduleEatingAsk(title: string, body: string) {
+  if (!supported || !(await allowNotifications())) return;
+  await Notifications.scheduleNotificationAsync({
+    identifier: 'eating-ask',
+    content: { title, body },
+    trigger: { type: Notifications.SchedulableTriggerInputTypes.DAILY, hour: 17, minute: 0 },
+  });
+}
+
 export async function cancelMorningMenu() {
   if (supported) await Notifications.cancelScheduledNotificationAsync(MORNING).catch(() => {});
 }

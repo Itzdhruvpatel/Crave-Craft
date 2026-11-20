@@ -1,7 +1,12 @@
+import Constants from 'expo-constants';
+import * as Notifications from 'expo-notifications';
 import { useCallback, useEffect, useState } from 'react';
+import { Platform } from 'react-native';
 
 import { supabase } from '@/auth';
+import { tr, type StrKey } from '@/lib/i18n.ts';
 import type { DayPlan } from '@/lib/planner.ts';
+import type { Lang, Rating } from '@/lib/types.ts';
 
 // Family Table data, backed by Supabase (see supabase/schema.sql). Row level security on the
 // server decides who sees what; this file only reads and writes.
@@ -18,6 +23,7 @@ export interface Member {
   user_id: string;
   display_name: string;
   role: Role;
+  mute_chat: boolean;
 }
 export interface MenuDay {
   day: string;
@@ -32,7 +38,23 @@ export interface Message {
   user_id: string;
   body: string | null;
   dish_id: string | null;
+  voice_path: string | null;
+  photo_path: string | null;
   created_at: string;
+}
+export interface Reaction {
+  message_id: number;
+  user_id: string;
+  emoji: string;
+}
+export interface FamilyRating {
+  user_id: string;
+  dish_id: string;
+  rating: Rating;
+}
+export interface Thanks {
+  user_id: string;
+  day: string;
 }
 export interface Poll {
   id: number;
@@ -102,15 +124,116 @@ export async function publishWeek(familyId: string, plan: DayPlan[], userId: str
   }));
   await check(db().from('menus').upsert(rows));
   await check(db().from('families').update({ surprise_at: hidden?.until ?? null }).eq('id', familyId));
+  pushFamily(familyId, userId, 'menuShared', hidden ? '🎁' : '🍽️', 'family');
 }
 
 export async function sendMessage(familyId: string, userId: string, body: string, dishId?: string) {
   await check(db().from('messages').insert({ family_id: familyId, user_id: userId, body, dish_id: dishId ?? null }));
+  pushFamily(familyId, userId, 'newMessage', body, 'chat');
+}
+
+/** Uploads a recorded voice note or picked photo into the family's private folder, then posts it. */
+export async function sendMedia(familyId: string, userId: string, uri: string, kind: 'voice' | 'photo') {
+  const web = Platform.OS === 'web';
+  const ext = kind === 'photo' ? 'jpg' : web ? 'webm' : 'm4a';
+  const type = kind === 'photo' ? 'image/jpeg' : web ? 'audio/webm' : 'audio/mp4';
+  const path = `${familyId}/${Date.now()}-${userId.slice(0, 8)}.${ext}`;
+  const bytes = await (await fetch(uri)).arrayBuffer();
+  await check(db().storage.from('family').upload(path, bytes, { contentType: type }));
+  const media = kind === 'voice' ? { voice_path: path } : { photo_path: path };
+  await check(db().from('messages').insert({ family_id: familyId, user_id: userId, ...media }));
+  pushFamily(familyId, userId, 'newMessage', kind === 'voice' ? '🎤' : '📷', 'chat');
+}
+
+/** Short-lived link to a family file; the bucket is private. */
+export async function fileUrl(path: string): Promise<string> {
+  const link = await check(db().storage.from('family').createSignedUrl(path, 3600));
+  if (!link) throw new Error('File not found');
+  return link.signedUrl;
+}
+
+/** Same emoji again removes it; a different one replaces it. */
+export async function react(familyId: string, userId: string, messageId: number, emoji: string, current?: string) {
+  if (current === emoji) await check(db().from('reactions').delete().eq('message_id', messageId).eq('user_id', userId));
+  else await check(db().from('reactions').upsert({ message_id: messageId, family_id: familyId, user_id: userId, emoji }));
+}
+
+export async function setMuteChat(familyId: string, userId: string, mute: boolean) {
+  await check(db().from('members').update({ mute_chat: mute }).eq('family_id', familyId).eq('user_id', userId));
+}
+
+let cachedFamily: { user: string; family: string | null } | null = null;
+async function myFamily(): Promise<{ user: string; family: string } | null> {
+  if (!supabase) return null;
+  const user = (await supabase.auth.getSession()).data.session?.user.id;
+  if (!user) return null;
+  if (cachedFamily?.user !== user || !cachedFamily.family) {
+    const rows = await check(supabase.from('members').select('family_id').eq('user_id', user).limit(1));
+    cachedFamily = { user, family: (rows?.[0]?.family_id as string | undefined) ?? null };
+  }
+  return cachedFamily.family ? { user, family: cachedFamily.family } : null;
+}
+
+/** Posts to the family chat from anywhere in the app (dadi's voice). False when not in a family. */
+export async function sayToFamily(body: string, dishId?: string): Promise<boolean> {
+  const me = await myFamily().catch(() => null);
+  if (!me) return false;
+  await sendMessage(me.family, me.user, body, dishId);
+  return true;
+}
+
+/** Copies a rating to the family table when this phone is in one. Silent when offline. */
+export async function shareRating(dishId: string, rating: Rating | null) {
+  const me = await myFamily().catch(() => null);
+  if (!me) return;
+  const mine = db().from('ratings');
+  if (rating === null) await mine.delete().eq('family_id', me.family).eq('user_id', me.user).eq('dish_id', dishId);
+  else await mine.upsert({ family_id: me.family, user_id: me.user, dish_id: dishId, rating, updated_at: new Date().toISOString() });
+}
+
+export async function shareThanks(day: string) {
+  const me = await myFamily().catch(() => null);
+  if (!me) return;
+  await db().from('thanks').upsert({ family_id: me.family, user_id: me.user, day });
+  pushFamily(me.family, me.user, 'thankMummy', '❤️', 'family');
+}
+
+/** Saves this phone's push address so the family can reach it when the app is closed. */
+export async function registerPush(familyId: string, userId: string) {
+  if (Platform.OS === 'web') return;
+  const projectId = Constants.expoConfig?.extra?.eas?.projectId as string | undefined;
+  const perm = await Notifications.getPermissionsAsync();
+  if (!perm.granted && !(await Notifications.requestPermissionsAsync()).granted) return;
+  const token = (await Notifications.getExpoPushTokenAsync({ projectId })).data;
+  await check(db().from('members').update({ push_token: token }).eq('family_id', familyId).eq('user_id', userId));
+}
+
+/**
+ * Push alert to everyone else in the family, each in their own language.
+ * Goes straight to Expo's push service; browsers block that call, so web senders skip it.
+ */
+export async function pushFamily(familyId: string, fromUser: string, title: StrKey, body: string, kind: 'chat' | 'family') {
+  if (Platform.OS === 'web' || !supabase) return;
+  try {
+    const rows = await check(supabase.from('members').select('user_id,push_token,lang,mute_chat').eq('family_id', familyId));
+    const to = (rows as { user_id: string; push_token: string | null; lang: Lang; mute_chat: boolean }[]).filter(
+      (m) => m.user_id !== fromUser && m.push_token && !(kind === 'chat' && m.mute_chat),
+    );
+    if (!to.length) return;
+    await fetch('https://exp.host/--/api/v2/push/send', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      body: JSON.stringify(to.map((m) => ({ to: m.push_token, title: tr(m.lang, title), body: body.slice(0, 120), sound: 'default' }))),
+    });
+  } catch {
+    // A missed alert is fine: the change is saved and shows up live in the app.
+  }
 }
 
 export async function createPoll(familyId: string, userId: string, question: string, dishIds: string[], hours = 3) {
   const closes = new Date(Date.now() + hours * 3600_000).toISOString();
   await check(db().from('polls').insert({ family_id: familyId, created_by: userId, question, dish_ids: dishIds, closes_at: closes }));
+  pushFamily(familyId, userId, 'newPollAlert', question, 'family');
 }
 
 export async function vote(pollId: number, userId: string, dishId: string) {
@@ -123,6 +246,7 @@ export async function closePoll(pollId: number, winner: string) {
 
 export async function filePetition(familyId: string, userId: string, dishId: string, meal: string, forDay: string, bribe: string) {
   await check(db().from('petitions').insert({ family_id: familyId, user_id: userId, dish_id: dishId, meal, for_day: forDay, bribe }));
+  pushFamily(familyId, userId, 'newPetition', bribe, 'family');
 }
 
 export async function payBribe(id: number) {
@@ -146,9 +270,12 @@ export interface FamilyData {
   votes: Vote[];
   petitions: Petition[];
   attendance: Attendance[];
+  reactions: Reaction[];
+  ratings: FamilyRating[];
+  thanks: Thanks[];
 }
 
-const EMPTY: FamilyData = { family: null, members: [], menu: [], messages: [], polls: [], votes: [], petitions: [], attendance: [] };
+const EMPTY: FamilyData = { family: null, members: [], menu: [], messages: [], polls: [], votes: [], petitions: [], attendance: [], reactions: [], ratings: [], thanks: [] };
 
 /**
  * Everything for the signed-in user's family, kept live with Supabase Realtime.
@@ -168,14 +295,17 @@ export function useFamily(userId: string | undefined, today: string, onEvent?: (
         setData(EMPTY);
         return;
       }
-      const [family, members, menu, messages, polls, petitions, attendance] = await Promise.all([
+      const [family, members, menu, messages, polls, petitions, attendance, reactions, ratings, thanks] = await Promise.all([
         check(supabase.from('families').select('id,name,invite_code,surprise_at').eq('id', familyId).single()),
-        check(supabase.from('members').select('user_id,display_name,role').eq('family_id', familyId)),
+        check(supabase.from('members').select('user_id,display_name,role,mute_chat').eq('family_id', familyId)),
         check(supabase.from('menus').select('day,breakfast,lunch,dinner,fast,hidden_until').eq('family_id', familyId).gte('day', today).order('day')),
-        check(supabase.from('messages').select('id,user_id,body,dish_id,created_at').eq('family_id', familyId).order('created_at', { ascending: false }).limit(60)),
+        check(supabase.from('messages').select('id,user_id,body,dish_id,voice_path,photo_path,created_at').eq('family_id', familyId).order('created_at', { ascending: false }).limit(60)),
         check(supabase.from('polls').select('id,question,dish_ids,closes_at,winner').eq('family_id', familyId).order('id', { ascending: false }).limit(10)),
         check(supabase.from('petitions').select('id,user_id,dish_id,meal,for_day,bribe,status,paid,created_at').eq('family_id', familyId).order('id', { ascending: false }).limit(30)),
         check(supabase.from('attendance').select('user_id,meal,eating').eq('family_id', familyId).eq('day', today)),
+        check(supabase.from('reactions').select('message_id,user_id,emoji').eq('family_id', familyId)),
+        check(supabase.from('ratings').select('user_id,dish_id,rating').eq('family_id', familyId)),
+        check(supabase.from('thanks').select('user_id,day').eq('family_id', familyId).order('day', { ascending: false }).limit(400)),
       ]);
       const pollIds = (polls as Poll[]).map((p) => p.id);
       const votes = pollIds.length ? await check(supabase.from('poll_votes').select('poll_id,user_id,dish_id').in('poll_id', pollIds)) : [];
@@ -188,6 +318,9 @@ export function useFamily(userId: string | undefined, today: string, onEvent?: (
         votes: votes as Vote[],
         petitions: petitions as Petition[],
         attendance: attendance as Attendance[],
+        reactions: reactions as Reaction[],
+        ratings: ratings as FamilyRating[],
+        thanks: thanks as Thanks[],
       });
       setError('');
     } catch (e) {
@@ -220,6 +353,9 @@ export function useFamily(userId: string | undefined, today: string, onEvent?: (
     watch('polls', 'poll');
     watch('petitions', 'petition');
     watch('attendance');
+    watch('reactions');
+    watch('ratings');
+    watch('thanks');
     // Votes have no family column; the server's row rules only send this family's votes.
     ch.on('postgres_changes', { event: '*', schema: 'public', table: 'poll_votes' }, () => load());
     ch.subscribe();

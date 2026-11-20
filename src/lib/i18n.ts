@@ -1,3 +1,11 @@
+import { fromDevanagari } from './script.ts';
+import { bn } from './lang/bn.ts';
+import { kn } from './lang/kn.ts';
+import { ml } from './lang/ml.ts';
+import { mr } from './lang/mr.ts';
+import { pa } from './lang/pa.ts';
+import { ta } from './lang/ta.ts';
+import { te } from './lang/te.ts';
 import type { Course, Cuisine, Diet, Lang, Mood, Names, SpiceLevel, Unit } from './types.ts';
 
 const en = {
@@ -37,7 +45,6 @@ const en = {
   stop: 'Stop',
   notAFan: 'Not a fan',
   dislikedNote: 'Shows up less often in the plan',
-  jainNote: 'Jain: leave out',
   minutes: 'min',
   language: 'Language',
   diet: 'Food type',
@@ -83,7 +90,7 @@ const en = {
   intro2: "One family table. Today's menu reaches every phone at home.",
   intro3a: 'Made for',
   intro3b: 'your kitchen.',
-  intro3: 'Spice and quantities for your family size, in Gujarati, Hindi or English.',
+  intro3: 'Spice and quantities for your family size, in 10 Indian languages.',
   getStarted: 'Get started',
   skip: 'Skip',
   loginA: 'Welcome',
@@ -234,6 +241,22 @@ const en = {
   tiffinHint: "Dry dishes that stay good till lunch. Tap shuffle for another idea.",
   tiffinPack: "Pack this week's tiffins",
   sundayOff: "Sunday: no tiffin",
+  leaveOut: "leave out",
+  familyLoved: "Family loved",
+  playVoice: "Play voice note",
+  muteChat: "Mute chat alerts (menu alerts stay on)",
+  reactHint: "Long press to react",
+  recording: "Recording",
+  sendPhoto: "Send a photo",
+  voiceNote: "Record a voice note",
+  stopSend: "Stop and send",
+  speakNow: "Tap and speak",
+  listening: "Listening...",
+  speakHint: "Say \"what's for lunch today\", \"how to make dal dhokli\" or a message for the family",
+  micProblem: "The mic didn't work. Check the microphone permission.",
+  sentToFamily: "Sent to the family",
+  notInFamily: "Join the family table first",
+  talkFamily: "Talk to family",
   guessedWrong: 'Not this time',
   notShared: 'The HOD hasn\'t shared this week\'s menu yet.',
   eatingToday: 'Eating at home today?',
@@ -314,7 +337,6 @@ const hi: Partial<Record<StrKey, string>> = {
   stop: 'रुको',
   notAFan: 'पसंद नहीं',
   dislikedNote: 'प्लान में कम आएगा',
-  jainNote: 'जैन: न डालें',
   minutes: 'मिनट',
   language: 'भाषा',
   diet: 'खाने का प्रकार',
@@ -360,7 +382,7 @@ const hi: Partial<Record<StrKey, string>> = {
   intro2: 'एक परिवार, एक मेनू। आज का खाना घर के हर फ़ोन पर।',
   intro3a: 'आपकी',
   intro3b: 'रसोई के लिए।',
-  intro3: 'परिवार के हिसाब से मसाला और मात्रा, गुजराती, हिंदी या अंग्रेज़ी में।',
+  intro3: 'परिवार के हिसाब से मसाला और मात्रा, 10 भारतीय भाषाओं में।',
   getStarted: 'शुरू करें',
   skip: 'छोड़ें',
   loginA: 'स्वागत है,',
@@ -511,6 +533,22 @@ const hi: Partial<Record<StrKey, string>> = {
   tiffinHint: "सूखी चीज़ें जो लंच तक अच्छी रहें। दूसरा आइडिया चाहिए तो शफ़ल दबाएं।",
   tiffinPack: "इस हफ़्ते के टिफ़िन बनाएं",
   sundayOff: "रविवार: टिफ़िन की छुट्टी",
+  leaveOut: "न डालें",
+  familyLoved: "परिवार को पसंद आया",
+  playVoice: "आवाज़ सुनें",
+  muteChat: "चैट की सूचना बंद (मेनू की सूचना चालू रहेगी)",
+  reactHint: "दबाकर रखें और इमोजी चुनें",
+  recording: "रिकॉर्ड हो रहा है",
+  sendPhoto: "फ़ोटो भेजें",
+  voiceNote: "आवाज़ रिकॉर्ड करें",
+  stopSend: "रोकें और भेजें",
+  speakNow: "दबाइए और बोलिए",
+  listening: "सुन रहे हैं...",
+  speakHint: "बोलिए \"आज क्या बनेगा\", \"दाल ढोकली कैसे बनाते हैं\" या परिवार के लिए कोई बात",
+  micProblem: "माइक नहीं चला। माइक की अनुमति देखें।",
+  sentToFamily: "परिवार को भेज दिया",
+  notInFamily: "पहले फ़ैमिली टेबल से जुड़ें",
+  talkFamily: "परिवार से बात",
   guessedWrong: 'इस बार नहीं',
   notShared: 'मुखिया ने अभी इस हफ़्ते का मेनू नहीं भेजा।',
   eatingToday: 'आज घर पर खाएंगे?',
@@ -589,7 +627,6 @@ const gu: Partial<Record<StrKey, string>> = {
   stop: 'બંધ કરો',
   notAFan: 'નથી ભાવતું',
   dislikedNote: 'પ્લાનમાં ઓછું આવશે',
-  jainNote: 'જૈન: ના નાખવું',
   minutes: 'મિનિટ',
   language: 'ભાષા',
   diet: 'ખોરાકનો પ્રકાર',
@@ -635,7 +672,7 @@ const gu: Partial<Record<StrKey, string>> = {
   intro2: 'એક પરિવાર, એક મેનૂ. આજનું જમવાનું ઘરના દરેક ફોન પર.',
   intro3a: 'તમારા',
   intro3b: 'રસોડા માટે.',
-  intro3: 'પરિવાર પ્રમાણે મસાલો અને માપ, ગુજરાતી, હિંદી કે અંગ્રેજીમાં.',
+  intro3: 'પરિવાર પ્રમાણે મસાલો અને માપ, 10 ભારતીય ભાષાઓમાં.',
   getStarted: 'શરૂ કરીએ',
   skip: 'છોડો',
   loginA: 'ઘરમાં',
@@ -786,6 +823,22 @@ const gu: Partial<Record<StrKey, string>> = {
   tiffinHint: "સૂકી વાનગીઓ જે બપોર સુધી સારી રહે. બીજો આઈડિયા જોઈએ તો શફલ દબાવો.",
   tiffinPack: "આ અઠવાડિયાનાં ટિફિન બનાવો",
   sundayOff: "રવિવાર: ટિફિનની રજા",
+  leaveOut: "ના નાખવું",
+  familyLoved: "પરિવારને ગમ્યું",
+  playVoice: "અવાજ સાંભળો",
+  muteChat: "ચેટની સૂચના બંધ (મેનૂની સૂચના ચાલુ રહેશે)",
+  reactHint: "દબાવી રાખો અને ઇમોજી પસંદ કરો",
+  recording: "રેકોર્ડ થાય છે",
+  sendPhoto: "ફોટો મોકલો",
+  voiceNote: "અવાજ રેકોર્ડ કરો",
+  stopSend: "રોકો અને મોકલો",
+  speakNow: "દબાવો અને બોલો",
+  listening: "સાંભળીએ છીએ...",
+  speakHint: "બોલો \"આજે શું બન્યું છે\", \"દાળ ઢોકળી કેવી રીતે બનાવાય\" અથવા પરિવાર માટે કોઈ વાત",
+  micProblem: "માઇક ન ચાલ્યું. માઇકની પરવાનગી તપાસો.",
+  sentToFamily: "પરિવારને મોકલી દીધું",
+  notInFamily: "પહેલા ફેમિલી ટેબલમાં જોડાઓ",
+  talkFamily: "પરિવાર સાથે વાત",
   guessedWrong: 'આ વખતે નહીં',
   notShared: 'મુખિયાએ હજી આ અઠવાડિયાનું મેનૂ મોકલ્યું નથી.',
   eatingToday: 'આજે ઘરે જમશો?',
@@ -827,61 +880,92 @@ const gu: Partial<Record<StrKey, string>> = {
   leave: 'પરિવાર છોડો',
 };
 
-const DICT: Record<Lang, Partial<Record<StrKey, string>>> = { en, hi, gu };
+const DICT: Record<Lang, Partial<Record<StrKey, string>>> = { en, hi, gu, mr, pa, bn, ta, te, kn, ml };
 
 export function tr(lang: Lang, key: StrKey): string {
   return DICT[lang][key] ?? en[key];
 }
 
+/** A name in the reader's language; dish names fall back to the Hindi name written in their script. */
 export function nameIn(names: Names, lang: Lang): string {
-  return names[lang] ?? names.en;
+  if (names[lang]) return names[lang];
+  if (names.hi && lang !== 'en' && lang !== 'hi') return lang === 'mr' ? names.hi : fromDevanagari(names.hi, lang);
+  return names.en;
+}
+
+/**
+ * Ingredient names are everyday Hindi words, not proper names: "बाजरे का आटा" spelled in Tamil
+ * letters means nothing to a Tamil reader. Outside Hindi-reading languages they stay in English.
+ */
+export function ingName(names: Names, lang: Lang): string {
+  if (names[lang] || lang === 'mr' || lang === 'pa' || lang === 'gu') return nameIn(names, lang);
+  return names.en;
 }
 
 export const LANGS: { id: Lang; label: string }[] = [
   { id: 'en', label: 'English' },
   { id: 'hi', label: 'हिंदी' },
   { id: 'gu', label: 'ગુજરાતી' },
+  { id: 'mr', label: 'मराठी' },
+  { id: 'pa', label: 'ਪੰਜਾਬੀ' },
+  { id: 'bn', label: 'বাংলা' },
+  { id: 'ta', label: 'தமிழ்' },
+  { id: 'te', label: 'తెలుగు' },
+  { id: 'kn', label: 'ಕನ್ನಡ' },
+  { id: 'ml', label: 'മലയാളം' },
 ];
 
 /** BCP 47 codes for text-to-speech */
-export const SPEECH_LANG: Record<Lang, string> = { en: 'en-IN', hi: 'hi-IN', gu: 'gu-IN' };
+export const SPEECH_LANG: Record<Lang, string> = {
+  en: 'en-IN',
+  hi: 'hi-IN',
+  gu: 'gu-IN',
+  mr: 'mr-IN',
+  pa: 'pa-IN',
+  bn: 'bn-IN',
+  ta: 'ta-IN',
+  te: 'te-IN',
+  kn: 'kn-IN',
+  ml: 'ml-IN',
+};
 
 export const DIET_LABEL: Record<Diet, Names> = {
-  veg: { en: 'Pure Veg', hi: 'शुद्ध शाकाहारी', gu: 'શુદ્ધ શાકાહારી' },
-  jain: { en: 'Jain', hi: 'जैन', gu: 'જૈન' },
-  egg: { en: 'Eggetarian', hi: 'अंडा चलता है', gu: 'ઈંડા ચાલે' },
-  nonveg: { en: 'Non-Veg', hi: 'मांसाहारी', gu: 'માંસાહારી' },
+  veg: { en: 'Pure Veg', hi: 'शुद्ध शाकाहारी', gu: 'શુદ્ધ શાકાહારી', mr: "शुद्ध शाकाहारी", pa: "ਸ਼ੁੱਧ ਸ਼ਾਕਾਹਾਰੀ", bn: "নিরামিষ", ta: "சைவம்", te: "శాకాహారం", kn: "ಸಸ್ಯಾಹಾರ", ml: "സസ്യാഹാരം" },
+  jain: { en: 'Jain', hi: 'जैन', gu: 'જૈન', mr: "जैन", pa: "ਜੈਨ", bn: "জৈন", ta: "ஜைன", te: "జైన", kn: "ಜೈನ", ml: "ജൈന" },
+  swami: { en: 'Swaminarayan', hi: 'स्वामीनारायण', gu: 'સ્વામિનારાયણ', mr: "स्वामीनारायण", pa: "ਸਵਾਮੀਨਾਰਾਇਣ", bn: "স্বামীনারায়ণ", ta: "சுவாமிநாராயண்", te: "స్వామినారాయణ", kn: "ಸ್ವಾಮಿನಾರಾಯಣ", ml: "സ്വാമിനാരായണ" },
+  egg: { en: 'Eggetarian', hi: 'अंडा चलता है', gu: 'ઈંડા ચાલે', mr: "अंडे चालतात", pa: "ਆਂਡਾ ਚੱਲਦਾ ਹੈ", bn: "ডিম চলে", ta: "முட்டை சாப்பிடுவோம்", te: "గుడ్డు తింటాం", kn: "ಮೊಟ್ಟೆ ತಿನ್ನುತ್ತೇವೆ", ml: "മുട്ട കഴിക്കും" },
+  nonveg: { en: 'Non-Veg', hi: 'मांसाहारी', gu: 'માંસાહારી', mr: "मांसाहारी", pa: "ਮਾਸਾਹਾਰੀ", bn: "আমিষ", ta: "அசைவம்", te: "మాంసాహారం", kn: "ಮಾಂಸಾಹಾರ", ml: "മാംസാഹാരം" },
 };
 
 export const UNIT_LABEL: Record<Unit, Names> = {
-  g: { en: 'g', hi: 'ग्राम', gu: 'ગ્રામ' },
-  ml: { en: 'ml', hi: 'मि.ली.', gu: 'મિ.લી.' },
-  tsp: { en: 'tsp', hi: 'छोटी चम्मच', gu: 'નાની ચમચી' },
-  tbsp: { en: 'tbsp', hi: 'बड़ी चम्मच', gu: 'મોટી ચમચી' },
-  cup: { en: 'cup', hi: 'कप', gu: 'કપ' },
-  pinch: { en: 'chapti', hi: 'चुटकी', gu: 'ચપટી' },
-  pc: { en: '', hi: '', gu: '' },
+  g: { en: 'g', hi: 'ग्राम', gu: 'ગ્રામ', mr: "ग्रॅम", pa: "ਗ੍ਰਾਮ", bn: "গ্রাম", ta: "கிராம்", te: "గ్రాము", kn: "ಗ್ರಾಂ", ml: "ഗ്രാം" },
+  ml: { en: 'ml', hi: 'मि.ली.', gu: 'મિ.લી.', mr: "मि.ली.", pa: "ਮਿ.ਲੀ.", bn: "মি.লি.", ta: "மி.லி.", te: "మి.లీ.", kn: "ಮಿ.ಲೀ.", ml: "മി.ലി." },
+  tsp: { en: 'tsp', hi: 'छोटी चम्मच', gu: 'નાની ચમચી', mr: "छोटा चमचा", pa: "ਛੋਟਾ ਚਮਚ", bn: "চা চামচ", ta: "டீஸ்பூன்", te: "టీస్పూన్", kn: "ಟೀ ಚಮಚ", ml: "ടീസ്പൂൺ" },
+  tbsp: { en: 'tbsp', hi: 'बड़ी चम्मच', gu: 'મોટી ચમચી', mr: "मोठा चमचा", pa: "ਵੱਡਾ ਚਮਚ", bn: "টেবিল চামচ", ta: "டேபிள்ஸ்பூன்", te: "టేబుల్‌స్పూన్", kn: "ಟೇಬಲ್ ಚಮಚ", ml: "ടേബിൾസ്പൂൺ" },
+  cup: { en: 'cup', hi: 'कप', gu: 'કપ', mr: "कप", pa: "ਕੱਪ", bn: "কাপ", ta: "கப்", te: "కప్పు", kn: "ಕಪ್", ml: "കപ്പ്" },
+  pinch: { en: 'chapti', hi: 'चुटकी', gu: 'ચપટી', mr: "चिमूटभर", pa: "ਚੁਟਕੀ", bn: "চিমটে", ta: "சிட்டிகை", te: "చిటికెడు", kn: "ಚಿಟಿಕೆ", ml: "നുള്ള്" },
+  pc: { en: '', hi: '', gu: '', mr: "", pa: "", bn: "", ta: "", te: "", kn: "", ml: "" },
 };
 
-export const KATORI: Names = { en: 'katori', hi: 'कटोरी', gu: 'વાટકી' };
+export const KATORI: Names = { en: 'katori', hi: 'कटोरी', gu: 'વાટકી', mr: "वाटी", pa: "ਕਟੋਰੀ", bn: "বাটি", ta: "கிண்ணம்", te: "గిన్నె", kn: "ಬಟ್ಟಲು", ml: "കിണ്ണം" };
 
 export const SPICE_LABEL: Record<SpiceLevel, Names> = {
-  low: { en: 'Low', hi: 'कम', gu: 'ઓછું' },
-  medium: { en: 'Medium', hi: 'मध्यम', gu: 'મધ્યમ' },
-  high: { en: 'High', hi: 'तेज़', gu: 'વધારે' },
+  low: { en: 'Low', hi: 'कम', gu: 'ઓછું', mr: "कमी", pa: "ਘੱਟ", bn: "কম", ta: "குறைவு", te: "తక్కువ", kn: "ಕಡಿಮೆ", ml: "കുറവ്" },
+  medium: { en: 'Medium', hi: 'मध्यम', gu: 'મધ્યમ', mr: "मध्यम", pa: "ਦਰਮਿਆਨਾ", bn: "মাঝারি", ta: "நடுத்தரம்", te: "మధ్యస్థం", kn: "ಮಧ್ಯಮ", ml: "ഇടത്തരം" },
+  high: { en: 'High', hi: 'तेज़', gu: 'વધારે', mr: "जास्त", pa: "ਤੇਜ਼", bn: "বেশি", ta: "அதிகம்", te: "ఎక్కువ", kn: "ಹೆಚ್ಚು", ml: "കൂടുതൽ" },
 };
 
 export const CUISINE_LABEL: Record<Cuisine, Names> = {
-  gujarati: { en: 'Gujarati', hi: 'गुजराती', gu: 'ગુજરાતી' },
-  punjabi: { en: 'Punjabi / North', hi: 'पंजाबी / उत्तर भारतीय', gu: 'પંજાબી' },
-  south: { en: 'South Indian', hi: 'दक्षिण भारतीय', gu: 'સાઉથ ઇન્ડિયન' },
-  maharashtrian: { en: 'Maharashtrian', hi: 'महाराष्ट्रीयन', gu: 'મહારાષ્ટ્રીયન' },
-  rajasthani: { en: 'Rajasthani', hi: 'राजस्थानी', gu: 'રાજસ્થાની' },
-  bengali: { en: 'Bengali', hi: 'बंगाली', gu: 'બંગાળી' },
-  street: { en: 'Street food', hi: 'स्ट्रीट फूड', gu: 'સ્ટ્રીટ ફૂડ' },
-  indochinese: { en: 'Indo-Chinese', hi: 'इंडो-चाइनीज़', gu: 'ઇન્ડો-ચાઇનીઝ' },
-  continental: { en: 'Continental', hi: 'कॉन्टिनेंटल', gu: 'કોન્ટિનેન્ટલ' },
-  pan: { en: 'Everyday Indian', hi: 'रोज़ का खाना', gu: 'રોજનું જમવાનું' },
+  gujarati: { en: 'Gujarati', hi: 'गुजराती', gu: 'ગુજરાતી', mr: "गुजराती", pa: "ਗੁਜਰਾਤੀ", bn: "গুজরাটি", ta: "குஜராத்தி", te: "గుజరాతీ", kn: "ಗುಜರಾತಿ", ml: "ഗുജറാത്തി" },
+  punjabi: { en: 'Punjabi / North', hi: 'पंजाबी / उत्तर भारतीय', gu: 'પંજાબી', mr: "पंजाबी / उत्तर भारतीय", pa: "ਪੰਜਾਬੀ / ਉੱਤਰ ਭਾਰਤੀ", bn: "পাঞ্জাবি / উত্তর ভারতীয়", ta: "பஞ்சாபி / வட இந்திய", te: "పంజాబీ / ఉత్తర భారత", kn: "ಪಂಜಾಬಿ / ಉತ್ತರ ಭಾರತ", ml: "പഞ്ചാബി / ഉത്തരേന്ത്യൻ" },
+  south: { en: 'South Indian', hi: 'दक्षिण भारतीय', gu: 'સાઉથ ઇન્ડિયન', mr: "दाक्षिणात्य", pa: "ਦੱਖਣ ਭਾਰਤੀ", bn: "দক্ষিণ ভারতীয়", ta: "தென்னிந்திய", te: "దక్షిణ భారత", kn: "ದಕ್ಷಿಣ ಭಾರತ", ml: "ദക്ഷിണേന്ത്യൻ" },
+  maharashtrian: { en: 'Maharashtrian', hi: 'महाराष्ट्रीयन', gu: 'મહારાષ્ટ્રીયન', mr: "महाराष्ट्रीय", pa: "ਮਹਾਰਾਸ਼ਟਰੀ", bn: "মহারাষ্ট্রীয়", ta: "மகாராஷ்டிர", te: "మహారాష్ట్ర", kn: "ಮಹಾರಾಷ್ಟ್ರ", ml: "മഹാരാഷ്ട്ര" },
+  rajasthani: { en: 'Rajasthani', hi: 'राजस्थानी', gu: 'રાજસ્થાની', mr: "राजस्थानी", pa: "ਰਾਜਸਥਾਨੀ", bn: "রাজস্থানি", ta: "ராஜஸ்தானி", te: "రాజస్థానీ", kn: "ರಾಜಸ್ಥಾನಿ", ml: "രാജസ്ഥാനി" },
+  bengali: { en: 'Bengali', hi: 'बंगाली', gu: 'બંગાળી', mr: "बंगाली", pa: "ਬੰਗਾਲੀ", bn: "বাঙালি", ta: "வங்காள", te: "బెంగాలీ", kn: "ಬಂಗಾಳಿ", ml: "ബംഗാളി" },
+  street: { en: 'Street food', hi: 'स्ट्रीट फूड', gu: 'સ્ટ્રીટ ફૂડ', mr: "रस्त्यावरचे खाणे", pa: "ਸਟ੍ਰੀਟ ਫੂਡ", bn: "রাস্তার খাবার", ta: "தெருவோர உணவு", te: "వీధి ఆహారం", kn: "ಬೀದಿ ತಿಂಡಿ", ml: "തെരുവ് ഭക്ഷണം" },
+  indochinese: { en: 'Indo-Chinese', hi: 'इंडो-चाइनीज़', gu: 'ઇન્ડો-ચાઇનીઝ', mr: "इंडो-चायनीज", pa: "ਇੰਡੋ-ਚਾਈਨੀਜ਼", bn: "ইন্দো-চাইনিজ", ta: "இந்தோ-சைனீஸ்", te: "ఇండో-చైనీస్", kn: "ಇಂಡೋ-ಚೈನೀಸ್", ml: "ഇൻഡോ-ചൈനീസ്" },
+  continental: { en: 'Continental', hi: 'कॉन्टिनेंटल', gu: 'કોન્ટિનેન્ટલ', mr: "कॉन्टिनेंटल", pa: "ਕੌਂਟੀਨੈਂਟਲ", bn: "কন্টিনেন্টাল", ta: "கான்டினென்டல்", te: "కాంటినెంటల్", kn: "ಕಾಂಟಿನೆಂಟಲ್", ml: "കോണ്ടിനെന്റൽ" },
+  pan: { en: 'Everyday Indian', hi: 'रोज़ का खाना', gu: 'રોજનું જમવાનું', mr: "रोजचे जेवण", pa: "ਰੋਜ਼ ਦਾ ਖਾਣਾ", bn: "রোজকার খাবার", ta: "தினசரி உணவு", te: "రోజువారీ భోజనం", kn: "ದಿನದ ಊಟ", ml: "ദിവസേനയുള്ള ഭക്ഷണം" },
 };
 
 /** Styles a family can say they cook at home (setup and settings). */
@@ -904,23 +988,23 @@ export function toggleStyle(list: Cuisine[], s: Cuisine): Cuisine[] {
 }
 
 export const COURSE_LABEL: Record<Course, Names> = {
-  breakfast: { en: 'Breakfast', hi: 'नाश्ता', gu: 'નાસ્તો' },
-  sabji: { en: 'Sabji', hi: 'सब्ज़ी', gu: 'શાક' },
-  dal: { en: 'Dal / Kadhi', hi: 'दाल / कढ़ी', gu: 'દાળ / કઢી' },
-  bread: { en: 'Roti', hi: 'रोटी', gu: 'રોટલી' },
-  rice: { en: 'Rice', hi: 'चावल', gu: 'ભાત' },
-  oneDish: { en: 'One-dish meal', hi: 'एक पकवान भोजन', gu: 'એક વાનગી ભોજન' },
-  farsan: { en: 'Farsan', hi: 'फरसाण', gu: 'ફરસાણ' },
-  side: { en: 'Sides', hi: 'साथ में', gu: 'સાથે' },
-  sweet: { en: 'Sweets', hi: 'मिठाई', gu: 'મીઠાઈ' },
-  drink: { en: 'Drinks', hi: 'पेय', gu: 'પીણાં' },
+  breakfast: { en: 'Breakfast', hi: 'नाश्ता', gu: 'નાસ્તો', mr: "नाश्ता", pa: "ਨਾਸ਼ਤਾ", bn: "জলখাবার", ta: "காலை உணவு", te: "టిఫిన్", kn: "ತಿಂಡಿ", ml: "പ്രഭാതഭക്ഷണം" },
+  sabji: { en: 'Sabji', hi: 'सब्ज़ी', gu: 'શાક', mr: "भाजी", pa: "ਸਬਜ਼ੀ", bn: "তরকারি", ta: "பொரியல் / கூட்டு", te: "కూర", kn: "ಪಲ್ಯ", ml: "കറി / ഉപ്പേരി" },
+  dal: { en: 'Dal / Kadhi', hi: 'दाल / कढ़ी', gu: 'દાળ / કઢી', mr: "डाळ / कढी", pa: "ਦਾਲ / ਕੜ੍ਹੀ", bn: "ডাল", ta: "பருப்பு / குழம்பு", te: "పప్పు / పులుసు", kn: "ಬೇಳೆ / ಸಾರು", ml: "പരിപ്പ് / കറി" },
+  bread: { en: 'Roti', hi: 'रोटी', gu: 'રોટલી', mr: "पोळी / भाकरी", pa: "ਰੋਟੀ", bn: "রুটি", ta: "சப்பாத்தி", te: "చపాతీ", kn: "ಚಪಾತಿ / ರೊಟ್ಟಿ", ml: "ചപ്പാത്തി" },
+  rice: { en: 'Rice', hi: 'चावल', gu: 'ભાત', mr: "भात", pa: "ਚੌਲ", bn: "ভাত", ta: "சாதம்", te: "అన్నం", kn: "ಅನ್ನ", ml: "ചോറ്" },
+  oneDish: { en: 'One-dish meal', hi: 'एक पकवान भोजन', gu: 'એક વાનગી ભોજન', mr: "एकाच भांड्यातले जेवण", pa: "ਇੱਕ-ਪਕਵਾਨ ਭੋਜਨ", bn: "এক পদের খাবার", ta: "ஒரே உணவு", te: "ఒకే వంటకం భోజనం", kn: "ಒಂದೇ ಅಡುಗೆಯ ಊಟ", ml: "ഒറ്റ വിഭവ ഭക്ഷണം" },
+  farsan: { en: 'Farsan', hi: 'फरसाण', gu: 'ફરસાણ', mr: "फरसाण", pa: "ਫਰਸਾਣ", bn: "নোনতা খাবার", ta: "நொறுக்குத் தீனி", te: "చిరుతిండి", kn: "ಕುರುಕಲು", ml: "പലഹാരം" },
+  side: { en: 'Sides', hi: 'साथ में', gu: 'સાથે', mr: "सोबत", pa: "ਨਾਲ ਦਾ", bn: "সাথে", ta: "தொட்டுக்கொள்ள", te: "పక్కన", kn: "ಜೊತೆಗೆ", ml: "കൂടെ" },
+  sweet: { en: 'Sweets', hi: 'मिठाई', gu: 'મીઠાઈ', mr: "गोड", pa: "ਮਿਠਾਈ", bn: "মিষ্টি", ta: "இனிப்பு", te: "తీపి", kn: "ಸಿಹಿ", ml: "മധുരം" },
+  drink: { en: 'Drinks', hi: 'पेय', gu: 'પીણાં', mr: "पेये", pa: "ਪੀਣ ਵਾਲੇ", bn: "পানীয়", ta: "பானங்கள்", te: "పానీయాలు", kn: "ಪಾನೀಯ", ml: "പാനീയങ്ങൾ" },
 };
 
 export const MOOD_LABEL: Record<Mood, Names> = {
-  comfort: { en: 'Comfort', hi: 'सुकून वाला', gu: 'મનગમતું ઘરનું' },
-  chatpata: { en: 'Chatpata', hi: 'चटपटा', gu: 'ચટપટું' },
-  light: { en: 'Light', hi: 'हल्का', gu: 'હલકું' },
-  heavy: { en: 'Heavy', hi: 'भारी', gu: 'ભારે' },
-  quick: { en: 'Quick', hi: 'झटपट', gu: 'ઝટપટ' },
-  special: { en: 'Special', hi: 'खास', gu: 'ખાસ' },
+  comfort: { en: 'Comfort', hi: 'सुकून वाला', gu: 'મનગમતું ઘરનું', mr: "घरगुती आरामदायी", pa: "ਸੁਕੂਨ ਵਾਲਾ", bn: "আরামের", ta: "மனம் நிறைக்கும்", te: "హాయిగా", kn: "ಮನೆ ರುಚಿ", ml: "ആശ്വാസം" },
+  chatpata: { en: 'Chatpata', hi: 'चटपटा', gu: 'ચટપટું', mr: "चटपटीत", pa: "ਚਟਪਟਾ", bn: "চটপটে", ta: "காரசாரம்", te: "ఘాటుగా", kn: "ಚಟಪಟ", ml: "എരിവുള്ള" },
+  light: { en: 'Light', hi: 'हल्का', gu: 'હલકું', mr: "हलके", pa: "ਹਲਕਾ", bn: "হালকা", ta: "லேசானது", te: "తేలికగా", kn: "ಹಗುರ", ml: "ലഘുവായ" },
+  heavy: { en: 'Heavy', hi: 'भारी', gu: 'ભારે', mr: "जड", pa: "ਭਾਰੀ", bn: "ভারী", ta: "கனமானது", te: "బరువుగా", kn: "ಭಾರ", ml: "കനത്ത" },
+  quick: { en: 'Quick', hi: 'झटपट', gu: 'ઝટપટ', mr: "झटपट", pa: "ਝਟਪਟ", bn: "চটজলদি", ta: "விரைவு", te: "త్వరగా", kn: "ತ್ವರಿತ", ml: "വേഗം" },
+  special: { en: 'Special', hi: 'खास', gu: 'ખાસ', mr: "खास", pa: "ਖ਼ਾਸ", bn: "বিশেষ", ta: "சிறப்பு", te: "ప్రత్యేకం", kn: "ವಿಶೇಷ", ml: "പ്രത്യേകം" },
 };

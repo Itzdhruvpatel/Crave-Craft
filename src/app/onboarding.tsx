@@ -9,7 +9,7 @@ import { CUISINE_LABEL, DIET_LABEL, HOME_STYLES, SPICE_LABEL, nameIn, toggleStyl
 import type { Diet, Profile, SpiceLevel } from '@/lib/types.ts';
 import { newWeek, setProfile, useLangNow } from '@/state';
 
-const DIETS: Diet[] = ['veg', 'jain', 'egg', 'nonveg'];
+const DIETS: Diet[] = ['veg', 'jain', 'swami', 'egg', 'nonveg'];
 const SPICES: SpiceLevel[] = ['low', 'medium', 'high'];
 // Language was already picked on the intro and login screens.
 const STEPS: StrKey[] = ['qDiet', 'qRegion', 'qPeople', 'qSpice'];

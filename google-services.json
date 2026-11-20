@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "316199384913",
+    "project_id": "mummy-said-so",
+    "storage_bucket": "mummy-said-so.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:316199384913:android:0902e91d176b6d42898570",
+        "android_client_info": {
+          "package_name": "com.mummysaidso.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyACPjjoO5ZKcJ0eCunOK2uU9S3A3ZU7c9Q"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

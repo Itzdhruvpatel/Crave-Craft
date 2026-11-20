@@ -1,6 +1,7 @@
 import { useSyncExternalStore } from 'react';
 
 import { DISHES } from '@/data/dishes/index.ts';
+import { shareRating, shareThanks } from '@/family';
 import { tr, type StrKey } from '@/lib/i18n.ts';
 import { fastsOn } from '@/lib/fasts.ts';
 import { isoDate, packTiffin, planWeek, replanDay, type DayPlan } from '@/lib/planner.ts';
@@ -157,11 +158,29 @@ export function rate(id: string, r: Rating) {
   if (ratings[id] === r) delete ratings[id];
   else ratings[id] = r;
   set({ profile: { ...p, ratings } });
+  shareRating(id, ratings[id] ?? null);
+}
+
+/** The family's taps steer this phone's planner for dishes it hasn't rated itself. */
+export function mergeFamilyRatings(rows: { user_id: string; dish_id: string; rating: Rating }[], me: string) {
+  const p = state.profile;
+  if (!p) return;
+  const sum = new Map<string, number>();
+  for (const r of rows) if (r.user_id !== me) sum.set(r.dish_id, (sum.get(r.dish_id) ?? 0) + r.rating);
+  const ratings = { ...p.ratings };
+  let changed = false;
+  for (const [id, s] of sum) {
+    if (p.ratings?.[id] !== undefined || !s) continue;
+    ratings[id] = (s > 0 ? 1 : -1) as Rating;
+    changed = true;
+  }
+  if (changed) set({ profile: { ...p, ratings } });
 }
 
 export function sayThanks() {
   const today = isoDate(new Date());
   if (!state.thanks.includes(today)) set({ thanks: [...state.thanks, today] });
+  shareThanks(today);
 }
 
 export function setGuess(day: string, dishId: string) {

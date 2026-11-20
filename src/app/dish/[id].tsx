@@ -12,8 +12,8 @@ import { MaxContentWidth } from '@/constants/theme';
 import { DISHES, DISH_BY_ID } from '@/data/dishes/index.ts';
 import { PHOTOS } from '@/data/photos';
 import { stepsIn } from '@/data/steps.ts';
-import { COURSE_LABEL, CUISINE_LABEL, MOOD_LABEL, SPEECH_LANG, SPICE_LABEL, nameIn, type StrKey } from '@/lib/i18n.ts';
-import { MEAL_TARGET, balanceTips, jainSkips, perServing } from '@/lib/nutrition.ts';
+import { COURSE_LABEL, CUISINE_LABEL, DIET_LABEL, MOOD_LABEL, SPEECH_LANG, SPICE_LABEL, ingName, nameIn, type StrKey } from '@/lib/i18n.ts';
+import { MEAL_TARGET, balanceTips, dietSkips, perServing } from '@/lib/nutrition.ts';
 import { allergensIn, familyNeeds, healthAdjust } from '@/lib/health.ts';
 import { isoDate } from '@/lib/planner.ts';
 import { formatQty, ingredient, scaleDish } from '@/lib/scale.ts';
@@ -47,7 +47,7 @@ export default function DishScreen() {
   if (!dish) return <T>{t('noResults')}</T>;
 
   const uri = photoOf(dish.id, 960);
-  const skip = profile.diet === 'jain' ? jainSkips(dish) : [];
+  const skip = dietSkips(dish, profile.diet);
   const needs = familyNeeds(profile);
   const ings = healthAdjust(scaleDish(dish, people, spice), needs).filter((i) => !skip.includes(i.id));
   const members = profile.members ?? [];
@@ -176,12 +176,12 @@ export default function DishScreen() {
             )}
             {skip.length > 0 && (
               <T kind="small" color={C.warn} style={{ paddingVertical: 6 }}>
-                {t('jainNote')}: {skip.map((s) => nameIn(ingredient(s).name, lang)).join(', ')}
+                {nameIn(DIET_LABEL[profile.diet], lang)}, {t('leaveOut')}: {skip.map((s) => ingName(ingredient(s).name, lang)).join(', ')}
               </T>
             )}
             {ings.map((i, k) => (
               <Row key={`${i.id}-${k}`} style={{ justifyContent: 'space-between', gap: 12, paddingVertical: 12, borderTopWidth: k ? 1 : 0, borderColor: 'rgba(255,255,255,0.08)' }}>
-                <T style={{ flex: 1 }}>{nameIn(ingredient(i.id).name, lang)}</T>
+                <T style={{ flex: 1 }}>{ingName(ingredient(i.id).name, lang)}</T>
                 <T kind="label" color={C.accent}>
                   {formatQty(i.qty, i.unit, lang, i.id)}
                 </T>

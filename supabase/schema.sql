@@ -16,7 +16,7 @@ create table if not exists members (
   display_name text not null,
   -- hod = head of the kitchen; their decision is final
   role text not null default 'member' check (role in ('hod', 'member')),
-  lang text not null default 'en' check (lang in ('en', 'hi', 'gu')),
+  lang text not null default 'en',
   push_token text,
   joined_at timestamptz not null default now(),
   primary key (family_id, user_id)
@@ -201,12 +201,80 @@ drop policy if exists "members mark themselves" on attendance;
 create policy "members mark themselves" on attendance for all using (user_id = auth.uid() and is_member(family_id))
   with check (user_id = auth.uid() and is_member(family_id));
 
+-- Shared family taste, the thank-you wall, chat photos and reactions, push settings.
+alter table members drop constraint if exists members_lang_check;
+alter table members add constraint members_lang_check
+  check (lang in ('en', 'hi', 'gu', 'mr', 'ta', 'te', 'kn', 'ml', 'bn', 'pa'));
+-- Mute chat alerts but keep menu, poll and petition alerts.
+alter table members add column if not exists mute_chat boolean not null default false;
+
+alter table messages add column if not exists photo_path text;
+alter table messages drop constraint if exists messages_check;
+alter table messages add constraint messages_check
+  check (body is not null or voice_path is not null or dish_id is not null or photo_path is not null);
+
+create table if not exists reactions (
+  message_id bigint not null references messages (id) on delete cascade,
+  family_id uuid not null references families (id) on delete cascade,
+  user_id uuid not null references auth.users (id) on delete cascade,
+  emoji text not null check (char_length(emoji) <= 8),
+  primary key (message_id, user_id)
+);
+
+-- After-meal taps from everyone; the HOD's planner learns from the family total.
+create table if not exists ratings (
+  family_id uuid not null references families (id) on delete cascade,
+  user_id uuid not null references auth.users (id) on delete cascade,
+  dish_id text not null,
+  rating smallint not null check (rating between -1 and 1),
+  updated_at timestamptz not null default now(),
+  primary key (family_id, user_id, dish_id)
+);
+
+-- One "Thank you Mummy" per person per day.
+create table if not exists thanks (
+  family_id uuid not null references families (id) on delete cascade,
+  user_id uuid not null references auth.users (id) on delete cascade,
+  day date not null default current_date,
+  primary key (family_id, user_id, day)
+);
+
+alter table reactions enable row level security;
+alter table ratings enable row level security;
+alter table thanks enable row level security;
+
+drop policy if exists "members read reactions" on reactions;
+create policy "members read reactions" on reactions for select using (is_member(family_id));
+drop policy if exists "members react" on reactions;
+create policy "members react" on reactions for all using (user_id = auth.uid() and is_member(family_id))
+  with check (user_id = auth.uid() and is_member(family_id));
+
+drop policy if exists "members read ratings" on ratings;
+create policy "members read ratings" on ratings for select using (is_member(family_id));
+drop policy if exists "members rate" on ratings;
+create policy "members rate" on ratings for all using (user_id = auth.uid() and is_member(family_id))
+  with check (user_id = auth.uid() and is_member(family_id));
+
+drop policy if exists "members read thanks" on thanks;
+create policy "members read thanks" on thanks for select using (is_member(family_id));
+drop policy if exists "members thank" on thanks;
+create policy "members thank" on thanks for insert with check (user_id = auth.uid() and is_member(family_id));
+
+-- Voice notes and chat photos. Private bucket; files live under <family id>/ and only that family can read them.
+insert into storage.buckets (id, name, public) values ('family', 'family', false) on conflict (id) do nothing;
+drop policy if exists "family reads its files" on storage.objects;
+create policy "family reads its files" on storage.objects for select
+  using (bucket_id = 'family' and public.is_member(((storage.foldername(name))[1])::uuid));
+drop policy if exists "family uploads its files" on storage.objects;
+create policy "family uploads its files" on storage.objects for insert
+  with check (bucket_id = 'family' and public.is_member(((storage.foldername(name))[1])::uuid));
+
 -- Live updates for the chat, menu, polls and petitions screens.
 -- Safe to run again: only adds tables not already in the realtime publication.
 do $$
 declare t text;
 begin
-  foreach t in array array['messages', 'menus', 'polls', 'poll_votes', 'petitions', 'attendance'] loop
+  foreach t in array array['messages', 'menus', 'polls', 'poll_votes', 'petitions', 'attendance', 'reactions', 'ratings', 'thanks'] loop
     if not exists (select 1 from pg_publication_tables where pubname = 'supabase_realtime' and tablename = t) then
       execute format('alter publication supabase_realtime add table %I', t);
     end if;

@@ -18,7 +18,8 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.mummysaidso.app"
+      "package": "com.mummysaidso.app",
+      "googleServicesFile": "./google-services.json"
     },
     "web": {
       "output": "single",
@@ -41,11 +42,24 @@
           "icon": "./assets/images/android-icon-monochrome.png",
           "color": "#CFF54A"
         }
-      ]
+      ],
+      "expo-audio",
+      "expo-speech-recognition"
     ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "extra": {
+      "router": {
+        "asyncRoutes": {
+          "web": true
+        }
+      },
+      "eas": {
+        "projectId": "6269bbd6-b03a-46f2-93a7-c26bbad0fa1a"
+      }
+    },
+    "owner": "itzdhruv"
   }
 }

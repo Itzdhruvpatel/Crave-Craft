@@ -6,7 +6,7 @@ import { Chip, Circle, DishRow, Glass, Headline, Row, Screen, T, TopBar, photoOf
 import { DISHES } from '@/data/dishes/index.ts';
 import { cookFromFridge, keyIngredients } from '@/lib/fridge.ts';
 import { aisleOf, type Aisle } from '@/lib/grocery.ts';
-import { nameIn, type StrKey } from '@/lib/i18n.ts';
+import { ingName, type StrKey } from '@/lib/i18n.ts';
 import { fitsDiet } from '@/lib/nutrition.ts';
 import { ingredient } from '@/lib/scale.ts';
 import { togglePantry, useApp, useT } from '@/state';
@@ -48,7 +48,7 @@ export default function Fridge() {
                 <Chip
                   key={id}
                   icon={pantry.includes(id) ? 'checkmark' : undefined}
-                  label={nameIn(ingredient(id).name, lang)}
+                  label={ingName(ingredient(id).name, lang)}
                   on={pantry.includes(id)}
                   onPress={() => togglePantry(id)}
                 />
@@ -64,7 +64,7 @@ export default function Fridge() {
             <DishRow
               key={m.dish.id}
               dish={m.dish}
-              note={m.missing.length ? `${t('missing')}: ${m.missing.map((id) => nameIn(ingredient(id).name, lang)).join(', ')}` : `✓ ${t('haveAll')}`}
+              note={m.missing.length ? `${t('missing')}: ${m.missing.map((id) => ingName(ingredient(id).name, lang)).join(', ')}` : `✓ ${t('haveAll')}`}
             />
           ))}
         </Glass>
