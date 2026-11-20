@@ -1,5 +1,6 @@
 import { INGREDIENTS } from '../data/ingredients.ts';
-import type { Dish, DishIng, Ingredient, SpiceLevel, Unit } from './types.ts';
+import { KATORI, UNIT_LABEL, nameIn } from './i18n.ts';
+import type { Dish, DishIng, Ingredient, Lang, SpiceLevel, Unit } from './types.ts';
 
 export const SPICE_LEVEL: Record<SpiceLevel, number> = { low: 0.5, medium: 1, high: 1.5 };
 
@@ -94,8 +95,15 @@ export function roundQty(qty: number, unit: Unit): number {
   }
 }
 
-export function formatQty(qty: number, unit: Unit): string {
-  const q = roundQty(qty, unit);
-  if (unit === 'pc') return frac(q);
-  return `${frac(q)} ${unit}`;
+// A home katori holds about 150 ml; `tsp` on an ingredient is grams per 5 ml.
+const KATORI_ML = 150;
+
+/** "½ tsp", "1 chapti", and for dry staples "300 g (2½ katori)" the way they're measured at home. */
+export function formatQty(qty: number, unit: Unit, lang: Lang = 'en', id?: string): string {
+  if (unit === 'pc') return frac(roundQty(qty, unit));
+  const text = `${frac(roundQty(qty, unit))} ${nameIn(UNIT_LABEL[unit], lang)}`;
+  const ing = id ? ingredient(id) : undefined;
+  if (unit !== 'g' || !ing?.tsp || ing.kind !== 'main') return text;
+  const katori = qty / ((ing.tsp * KATORI_ML) / 5);
+  return katori < 0.5 ? text : `${text} (${frac(roundQty(katori, 'cup'))} ${nameIn(KATORI, lang)})`;
 }

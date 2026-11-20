@@ -11,6 +11,8 @@ export interface Family {
   id: string;
   name: string;
   invite_code: string;
+  /** when tonight's hidden menu opens; members can't read hidden menu rows, so the time lives here */
+  surprise_at: string | null;
 }
 export interface Member {
   user_id: string;
@@ -97,6 +99,7 @@ export async function publishWeek(familyId: string, plan: DayPlan[], userId: str
     updated_at: new Date().toISOString(),
   }));
   await check(db().from('menus').upsert(rows));
+  await check(db().from('families').update({ surprise_at: hidden?.until ?? null }).eq('id', familyId));
 }
 
 export async function sendMessage(familyId: string, userId: string, body: string, dishId?: string) {
@@ -160,7 +163,7 @@ export function useFamily(userId: string | undefined, today: string, onEvent?: (
         return;
       }
       const [family, members, menu, messages, polls, petitions, attendance] = await Promise.all([
-        check(supabase.from('families').select('id,name,invite_code').eq('id', familyId).single()),
+        check(supabase.from('families').select('id,name,invite_code,surprise_at').eq('id', familyId).single()),
         check(supabase.from('members').select('user_id,display_name,role').eq('family_id', familyId)),
         check(supabase.from('menus').select('day,breakfast,lunch,dinner,fast,hidden_until').eq('family_id', familyId).gte('day', today).order('day')),
         check(supabase.from('messages').select('id,user_id,body,dish_id,created_at').eq('family_id', familyId).order('created_at', { ascending: false }).limit(60)),

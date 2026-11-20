@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Pressable, ScrollView, Share, Switch, TextInput, View } from 'react-native';
 
 import { authReady, useSession } from '@/auth';
@@ -23,9 +23,10 @@ import {
 import { nameIn, type StrKey } from '@/lib/i18n.ts';
 import { fitsDiet } from '@/lib/nutrition.ts';
 import { SLOTS, isoDate, type Slot } from '@/lib/planner.ts';
+import { clock } from '@/lib/timer.ts';
 import type { Diet } from '@/lib/types.ts';
 import { notifyNow } from '@/notify';
-import { leaveGuest, useApp, useT } from '@/state';
+import { leaveGuest, setGuess, useApp, useT } from '@/state';
 
 type Tab = 'today' | 'polls' | 'petitions' | 'chat';
 
@@ -196,12 +197,65 @@ function Setup({ busy, note, run, back }: { busy: boolean; note: string; run: Ru
   );
 }
 
+/** Ticks every second until `until`, then calls `onDone` once. */
+function Countdown({ until, onDone }: { until: string; onDone: () => void }) {
+  const t = useT();
+  const [now, setNow] = useState(Date.now);
+  const left = (new Date(until).getTime() - now) / 1000;
+  useEffect(() => {
+    if (left <= 0) {
+      onDone();
+      return;
+    }
+    const id = setTimeout(() => setNow(Date.now()), 1000);
+    return () => clearTimeout(id);
+  }, [left, onDone]);
+  return (
+    <View style={{ alignItems: 'center', gap: 4 }}>
+      <T kind="small" dim>
+        🎁 {t('revealIn')}
+      </T>
+      <T kind="display" color={C.accent}>
+        {clock(left)}
+      </T>
+    </View>
+  );
+}
+
+function GuessCard({ today, revealed }: { today: string; revealed?: string[] }) {
+  const t = useT();
+  const lang = useLang();
+  const { profile, guesses } = useApp();
+  const guess = guesses[today];
+  const name = guess && DISH_BY_ID.get(guess) ? nameIn(DISH_BY_ID.get(guess)!.name, lang) : '';
+  if (revealed) {
+    if (!guess) return null;
+    return (
+      <T kind="label" color={revealed.includes(guess) ? C.accent : C.textSecondary}>
+        {revealed.includes(guess) ? `🎉 ${t('guessedRight')}` : `${t('guessedWrong')}: ${t('yourGuess')} ${name}`}
+      </T>
+    );
+  }
+  return (
+    <View style={{ gap: 10 }}>
+      <T kind="h2">🤔 {t('guessDish')}</T>
+      {guess ? (
+        <T dim>
+          {t('yourGuess')}: {name}
+        </T>
+      ) : null}
+      <DishPicker diet={profile!.diet} picked={guess ? [guess] : []} onToggle={(id) => setGuess(today, id)} max={1} />
+    </View>
+  );
+}
+
 function TodayTab({ fam, plan, userId, today, busy, run }: { fam: Fam; plan: ReturnType<typeof useApp>['plan']; userId: string; today: string; busy: boolean; run: Run }) {
   const t = useT();
   const lang = useLang();
   const [surprise, setSurprise] = useState(false);
   const day = fam.menu.find((m) => m.day === today);
   const hidden = day?.hidden_until && new Date(day.hidden_until) > new Date();
+  const surpriseAt = fam.family?.surprise_at && new Date(fam.family.surprise_at) > new Date() ? fam.family.surprise_at : null;
 
   const share = () => {
     if (!fam.family || !plan) return;
@@ -230,7 +284,12 @@ function TodayTab({ fam, plan, userId, today, busy, run }: { fam: Fam; plan: Ret
         </Glass>
       )}
 
-      {!day ? (
+      {!day && surpriseAt && !fam.isHod ? (
+        <Glass style={{ padding: 18, gap: 18 }}>
+          <Countdown until={surpriseAt} onDone={fam.reload} />
+          <GuessCard today={today} />
+        </Glass>
+      ) : !day ? (
         <Glass style={{ padding: 18 }}>
           <T dim>{t('notShared')}</T>
         </Glass>
@@ -252,6 +311,8 @@ function TodayTab({ fam, plan, userId, today, busy, run }: { fam: Fam; plan: Ret
               ) : (
                 day[s].map((id) => DISH_BY_ID.get(id) && <DishRow key={id} dish={DISH_BY_ID.get(id)!} />)
               )}
+              {s === 'dinner' && hidden && fam.isHod && <Countdown until={day.hidden_until!} onDone={fam.reload} />}
+              {s === 'dinner' && !hidden && <GuessCard today={today} revealed={day.dinner} />}
               <Row style={{ gap: 8 }}>
                 <T kind="small" dim style={{ flex: 1 }}>
                   {t('eatingToday')}

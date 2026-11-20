@@ -2,11 +2,12 @@ import { Link, router } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, ScrollView, Switch, View, useWindowDimensions } from 'react-native';
 
+import { Stepper } from '@/components/stepper';
 import { C, Circle, DishPhoto, Glass, Headline, IconPill, Row, Screen, T, TopBar, photoOf, useLang } from '@/components/ui';
 import { DISHES, DISH_BY_ID } from '@/data/dishes/index.ts';
 import { nameIn } from '@/lib/i18n.ts';
 import { SLOTS, isoDate, swapDish } from '@/lib/planner.ts';
-import { newWeek, setPlan, useApp, useT } from '@/state';
+import { newWeek, setGuests, setPlan, useApp, useT } from '@/state';
 
 const HERO = ['sabji', 'oneDish', 'breakfast', 'farsan'];
 
@@ -131,6 +132,21 @@ export default function Week() {
               thumbColor={C.white}
               accessibilityLabel={t('fastDay')}
             />
+          </Row>
+        </Glass>
+      )}
+
+      {day && (
+        <Glass style={{ padding: 18 }}>
+          <Row style={{ gap: 14 }}>
+            <Circle icon="people-outline" label={t('guests')} kind={day.guests ? 'lime' : 'glass'} size={40} />
+            <View style={{ flex: 1 }}>
+              <T kind="label">{t('guests')}</T>
+              <T kind="small" dim>
+                {t('guestsHint')}
+              </T>
+            </View>
+            <Stepper value={day.guests ?? 0} min={0} max={30} onChange={(n) => setGuests(day.date, n)} />
           </Row>
         </Glass>
       )}

@@ -14,6 +14,7 @@ import { PHOTOS } from '@/data/photos';
 import { stepsIn } from '@/data/steps.ts';
 import { COURSE_LABEL, CUISINE_LABEL, MOOD_LABEL, SPEECH_LANG, SPICE_LABEL, nameIn } from '@/lib/i18n.ts';
 import { MEAL_TARGET, balanceTips, jainSkips, perServing } from '@/lib/nutrition.ts';
+import { isoDate } from '@/lib/planner.ts';
 import { formatQty, ingredient, scaleDish } from '@/lib/scale.ts';
 import type { SpiceLevel } from '@/lib/types.ts';
 import { videoUrl } from '@/lib/video.ts';
@@ -30,12 +31,13 @@ function splitName(name: string): [string, string] {
 export default function DishScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const dish = DISH_BY_ID.get(id);
-  const profile = useApp().profile!;
+  const { profile: maybeProfile, plan } = useApp();
+  const profile = maybeProfile!;
   const t = useT();
   const lang = useLang();
   const insets = useSafeAreaInsets();
   const { height } = useWindowDimensions();
-  const [people, setPeople] = useState(profile.people);
+  const [people, setPeople] = useState(() => profile.people + (plan?.find((p) => p.date === isoDate(new Date()))?.guests ?? 0));
   const [spice, setSpice] = useState<SpiceLevel>(profile.spice);
   const [speaking, setSpeaking] = useState(false);
 
@@ -159,7 +161,7 @@ export default function DishScreen() {
               <Row key={`${i.id}-${k}`} style={{ justifyContent: 'space-between', gap: 12, paddingVertical: 12, borderTopWidth: k ? 1 : 0, borderColor: 'rgba(255,255,255,0.08)' }}>
                 <T style={{ flex: 1 }}>{nameIn(ingredient(i.id).name, lang)}</T>
                 <T kind="label" color={C.accent}>
-                  {formatQty(i.qty, i.unit)}
+                  {formatQty(i.qty, i.unit, lang, i.id)}
                 </T>
               </Row>
             ))}

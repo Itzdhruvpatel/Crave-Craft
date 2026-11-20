@@ -23,6 +23,9 @@ create table if not exists members (
 );
 
 -- The week plan the HOD shares. `hidden_until` powers surprise mode.
+-- Members can't read a hidden menu row, so the reveal time is kept on the family for the countdown.
+alter table families add column if not exists surprise_at timestamptz;
+
 create table if not exists menus (
   family_id uuid not null references families (id) on delete cascade,
   day date not null,

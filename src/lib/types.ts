@@ -96,4 +96,8 @@ export interface Profile {
   spice: SpiceLevel;
   /** dish ids someone dislikes */
   dislikes: string[];
+  /** after-meal taps: 1 loved it, 0 ok, -1 meh; steers the planner */
+  ratings?: Record<string, Rating>;
 }
+
+export type Rating = 1 | 0 | -1;

@@ -9,11 +9,13 @@ import { COURSE_LABEL, MOOD_LABEL, SPEECH_LANG, nameIn } from '@/lib/i18n.ts';
 import { balanceTips, fitsDiet } from '@/lib/nutrition.ts';
 import { ingredient } from '@/lib/scale.ts';
 import { SLOTS, isoDate, type Slot } from '@/lib/planner.ts';
-import type { Dish, Mood } from '@/lib/types.ts';
-import { isoWeekStart, newWeek, useApp, useT } from '@/state';
+import { streak } from '@/lib/streak.ts';
+import type { Dish, Mood, Rating } from '@/lib/types.ts';
+import { isoWeekStart, newWeek, rate, sayThanks, useApp, useT } from '@/state';
 
 const MAIN_COURSES = ['sabji', 'oneDish', 'breakfast', 'farsan'];
 const MOODS: Mood[] = ['comfort', 'chatpata', 'light', 'special'];
+const FACES: [Rating, string, 'loved' | 'okay' | 'meh'][] = [[1, '😋', 'loved'], [0, '🙂', 'okay'], [-1, '😐', 'meh']];
 const TITLE_A = { breakfast: 'breakfastA', lunch: 'lunchA', dinner: 'dinnerA' } as const;
 const TITLE_B = { breakfast: 'breakfastB', lunch: 'lunchB', dinner: 'dinnerB' } as const;
 
@@ -35,7 +37,7 @@ function heroOf(meal: Dish[]): number {
 }
 
 export default function Today() {
-  const { profile, plan } = useApp();
+  const { profile, plan, thanks } = useApp();
   const t = useT();
   const lang = profile!.lang;
   const [slot, setSlot] = useState<Slot>(slotNow);
@@ -54,6 +56,8 @@ export default function Today() {
   const meal = today?.[slot].map((id) => DISH_BY_ID.get(id)!) ?? [];
   const at = focus ?? heroOf(meal);
   const dish = meal[at];
+  const thankedToday = thanks.includes(isoDate(new Date()));
+  const days = streak(thanks, new Date());
   const tips = slot === 'breakfast' ? [] : balanceTips(meal, DISHES, profile!.diet);
 
   const results = useMemo((): Dish[] => {
@@ -107,7 +111,7 @@ export default function Today() {
         }
       />
 
-      <Headline a={t(TITLE_A[slot])} b={t(TITLE_B[slot])} side={today?.fast ? `🙏 ${t('fastDay')}` : `${meal.length} ${t('dishCount')}`} />
+      <Headline a={t(TITLE_A[slot])} b={t(TITLE_B[slot])} side={`${today?.fast ? `🙏 ${t('fastDay')}` : `${meal.length} ${t('dishCount')}`}${today?.guests ? `  ·  +${today.guests} ${t('guests')}` : ''}`} />
 
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
         {SLOTS.map((s) => (
@@ -161,6 +165,38 @@ export default function Today() {
           ))}
         </Row>
       )}
+
+      {dish && (
+        <Row style={{ gap: 8, flexWrap: 'wrap', justifyContent: 'center' }}>
+          <T kind="small" dim>
+            {t('howWasIt')}
+          </T>
+          {FACES.map(([r, face, key]) => (
+            <Chip key={key} label={`${face} ${t(key)}`} on={profile!.ratings?.[dish.id] === r} onPress={() => rate(dish.id, r)} />
+          ))}
+        </Row>
+      )}
+
+      <Glass style={{ padding: 18, gap: 12 }} tint="rgba(255,140,170,0.10)">
+        {thankedToday ? (
+          <Row style={{ gap: 12 }}>
+            <Circle icon="heart" label={t('thankMummy')} kind="lime" size={40} />
+            <T kind="label" style={{ flex: 1 }}>
+              {t('thanked')}
+            </T>
+          </Row>
+        ) : (
+          <Button label={`${t('thankMummy')} ❤️`} icon="heart" onPress={sayThanks} />
+        )}
+        <T kind="small" dim style={{ textAlign: 'center' }}>
+          🔥 {days} {t('streakDays')}  ·  {thanks.length} {t('thanksTotal')}
+        </T>
+        {days >= 7 && (
+          <T kind="small" color={C.accent} style={{ textAlign: 'center' }}>
+            🏅 {t('badgeWeek')}
+          </T>
+        )}
+      </Glass>
 
       {tips.map((tip) => (
         <Glass key={tip.reason} style={{ padding: 18, gap: 14 }} tint="rgba(207,245,74,0.10)">

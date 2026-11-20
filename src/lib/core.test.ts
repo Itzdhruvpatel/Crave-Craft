@@ -12,6 +12,7 @@ import { clock, stepMinutes } from './timer.ts';
 import { balanceTips, fitsDiet, isJain, jainSkips, perServing } from './nutrition.ts';
 import { LIMITS, STAPLES, planWeek, swapDish, type DayPlan } from './planner.ts';
 import { formatQty, scaleQty } from './scale.ts';
+import { streak } from './streak.ts';
 import type { Profile } from './types.ts';
 
 const profile: Profile = { diet: 'veg', regions: ['gujarati'], lang: 'en', people: 4, spice: 'medium', dislikes: [] };
@@ -195,4 +196,47 @@ test('balance tips suggest protein when meal is light', () => {
   const meal = ['bateta_nu_shaak', 'rotli'].map((id) => DISH_BY_ID.get(id)!);
   const tips = balanceTips(meal, DISHES, 'veg');
   assert.ok(tips.some((t) => t.reason === 'protein' && t.dishIds.length > 0));
+});
+
+test('dry staples show katori beside grams, pinch as chapti', () => {
+  assert.equal(formatQty(240, 'g', 'en', 'rice'), '240 g (2 katori)');
+  assert.equal(formatQty(240, 'g', 'gu', 'rice'), '240 ગ્રામ (2 વાટકી)');
+  assert.equal(formatQty(30, 'g', 'en', 'rice'), '30 g');
+  assert.equal(formatQty(10, 'g', 'en', 'salt'), '10 g');
+  assert.equal(formatQty(1, 'pinch'), '1 chapti');
+  assert.equal(formatQty(0.5, 'tsp', 'hi'), '½ छोटी चम्मच');
+});
+
+test('loved dishes come up more often than meh ones', () => {
+  const id = 'bhinda_nu_shaak';
+  assert.ok(DISH_BY_ID.get(id), id);
+  const count = (rating: 1 | -1) => {
+    let n = 0;
+    for (let seed = 1; seed <= 40; seed++) {
+      const plan = planWeek(DISHES, { ...profile, ratings: { [id]: rating } }, { start: new Date(2026, 10, 16), seed });
+      n += allIds(plan).filter((x) => x === id).length;
+    }
+    return n;
+  };
+  assert.ok(count(1) > count(-1));
+});
+
+test('guests add to the shopping for their day only', () => {
+  const plan = planWeek(DISHES, profile, { start: new Date(2026, 10, 16), seed: 5 }).slice(0, 1);
+  const base = groceryList(plan, DISH_BY_ID, 4, 'medium').find((i) => i.unit === 'g')!;
+  const party = groceryList([{ ...plan[0], guests: 4 }], DISH_BY_ID, 4, 'medium').find((i) => i.id === base.id)!;
+  assert.ok(party.qty > base.qty * 1.8, `${party.qty} vs ${base.qty}`);
+});
+
+test('thank-you streak counts days in a row', () => {
+  const today = new Date(2026, 10, 20);
+  assert.equal(streak(['2026-11-18', '2026-11-19', '2026-11-20'], today), 3);
+  assert.equal(streak(['2026-11-18', '2026-11-19'], today), 2);
+  assert.equal(streak(['2026-11-17'], today), 0);
+  assert.equal(streak(['2026-10-31', '2026-11-01'], new Date(2026, 10, 1)), 2);
+});
+
+test('clock shows hours for long countdowns', () => {
+  assert.equal(clock(65), '1:05');
+  assert.equal(clock(3725), '1:02:05');
 });

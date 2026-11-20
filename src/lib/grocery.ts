@@ -34,14 +34,14 @@ export interface GroceryItem {
   dishes: string[];
 }
 
-/** Everything needed to cook these days for `people`, summed per ingredient. */
+/** Everything needed to cook these days for `people` plus each day's guests, summed per ingredient. */
 export function groceryList(days: DayPlan[], byId: Map<string, Dish>, people: number, spice: SpiceLevel): GroceryItem[] {
   const acc = new Map<string, { g: number; pc: number; allPc: boolean; dishes: Set<string> }>();
   for (const day of days) {
     for (const id of [...day.breakfast, ...day.lunch, ...day.dinner]) {
       const dish = byId.get(id);
       if (!dish) continue;
-      for (const s of scaleDish(dish, people, spice)) {
+      for (const s of scaleDish(dish, people + (day.guests ?? 0), spice)) {
         if (s.id === 'water') continue;
         const e = acc.get(s.id) ?? { g: 0, pc: 0, allPc: true, dishes: new Set<string>() };
         e.g += grams(s.id, s.qty, s.unit);

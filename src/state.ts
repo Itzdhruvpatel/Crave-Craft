@@ -4,7 +4,7 @@ import { DISHES } from '@/data/dishes/index.ts';
 import { tr, type StrKey } from '@/lib/i18n.ts';
 import { isoDate, planWeek, type DayPlan } from '@/lib/planner.ts';
 import { load, save } from '@/lib/storage';
-import type { Lang, Profile } from '@/lib/types.ts';
+import type { Lang, Profile, Rating } from '@/lib/types.ts';
 
 interface AppState {
   profile: Profile | null;
@@ -22,10 +22,14 @@ interface AppState {
   pantry: string[];
   /** daily 8 am menu notification */
   reminder: boolean;
+  /** days someone tapped "Thank you Mummy" */
+  thanks: string[];
+  /** surprise dinner guesses, by day */
+  guesses: Record<string, string>;
 }
 
 const KEY = 'crave-craft-v1';
-const EMPTY: AppState = { profile: null, plan: null, lang: 'en', seenIntro: false, guest: false, bought: [], simple: false, pantry: [], reminder: false };
+const EMPTY: AppState = { profile: null, plan: null, lang: 'en', seenIntro: false, guest: false, bought: [], simple: false, pantry: [], reminder: false, thanks: [], guesses: {} };
 
 function read(): AppState {
   try {
@@ -104,7 +108,32 @@ export function setProfile(profile: Profile) {
 export function newWeek(fastDays: number[] = []) {
   if (!state.profile) return;
   // A new plan means a new shopping list.
-  set({ plan: planWeek(DISHES, state.profile, { start: startOfWeek(), fastDays }), bought: [] });
+  const guests = new Map(state.plan?.map((d) => [d.date, d.guests]));
+  const plan = planWeek(DISHES, state.profile, { start: startOfWeek(), fastDays }).map((d) => ({ ...d, guests: guests.get(d.date) }));
+  set({ plan, bought: [] });
+}
+
+export function setGuests(date: string, guests: number) {
+  set({ plan: state.plan?.map((d) => (d.date === date ? { ...d, guests } : d)) ?? null });
+}
+
+/** Tapping the same face again clears the rating. */
+export function rate(id: string, r: Rating) {
+  const p = state.profile;
+  if (!p) return;
+  const ratings = { ...p.ratings };
+  if (ratings[id] === r) delete ratings[id];
+  else ratings[id] = r;
+  set({ profile: { ...p, ratings } });
+}
+
+export function sayThanks() {
+  const today = isoDate(new Date());
+  if (!state.thanks.includes(today)) set({ thanks: [...state.thanks, today] });
+}
+
+export function setGuess(day: string, dishId: string) {
+  set({ guesses: { ...state.guesses, [day]: dishId } });
 }
 
 const toggleIn = (list: string[], id: string) => (list.includes(id) ? list.filter((x) => x !== id) : [...list, id]);

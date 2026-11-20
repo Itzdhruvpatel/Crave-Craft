@@ -7,6 +7,8 @@ export const SLOTS: Slot[] = ['breakfast', 'lunch', 'dinner'];
 export interface DayPlan {
   date: string; // YYYY-MM-DD
   fast: boolean;
+  /** guests eating with the family that day; scales recipes and shopping */
+  guests?: number;
   breakfast: string[];
   lunch: string[];
   dinner: string[];
@@ -70,6 +72,9 @@ function weight(d: Dish, ctx: Ctx): number {
   else if (d.cuisine === 'pan') w *= 1.5;
   if (d.season?.includes(ctx.season)) w *= 1.5;
   if (ctx.profile.dislikes.includes(d.id)) w *= 0.3;
+  const rated = ctx.profile.ratings?.[d.id];
+  if (rated === 1) w *= 2;
+  else if (rated === -1) w *= 0.5;
   // Staples: plain rotli and bhaat win most days, puri and jeera rice now and then.
   if (STAPLES.includes(d.course)) w /= d.fancy ** 2;
   // Weekdays are busy: long or party dishes go to the weekend.
