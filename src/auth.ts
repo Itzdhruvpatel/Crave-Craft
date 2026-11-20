@@ -42,10 +42,13 @@ export function useSession(): { session: Session | null; loading: boolean } {
   return { session, loading };
 }
 
-/** Sends a 6-digit sign-in code to the email address. */
+/** Where the email's sign-in link lands: this web page, or the app via its `auth` route. */
+const emailRedirect = () => (Platform.OS === 'web' ? window.location.origin : Linking.createURL('auth'));
+
+/** Emails a sign-in link (and a 6-digit code too, if the email template includes {{ .Token }}). */
 export async function sendEmailCode(email: string) {
   if (!supabase) throw new Error('Sign-in is not set up yet');
-  const { error } = await supabase.auth.signInWithOtp({ email, options: { shouldCreateUser: true } });
+  const { error } = await supabase.auth.signInWithOtp({ email, options: { shouldCreateUser: true, emailRedirectTo: emailRedirect() } });
   if (error) throw error;
 }
 
@@ -74,6 +77,13 @@ export async function signInWithGoogle() {
   if (!code) throw new Error('Google did not send a sign-in code back');
   const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
   if (exchangeError) throw exchangeError;
+}
+
+/** The app side of an email link: swap the link's one-time code for a session. */
+export async function finishEmailLink(code: string) {
+  if (!supabase) throw new Error('Sign-in is not set up yet');
+  const { error } = await supabase.auth.exchangeCodeForSession(code);
+  if (error) throw error;
 }
 
 export async function signOut() {

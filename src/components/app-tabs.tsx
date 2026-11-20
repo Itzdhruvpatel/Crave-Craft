@@ -1,15 +1,23 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { TabList, TabSlot, TabTrigger, Tabs, type TabTriggerSlotProps } from 'expo-router/ui';
-import { Pressable, View } from 'react-native';
+import { Pressable, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { C, Glass, type IconName } from '@/components/ui';
 import { useT } from '@/state';
 
-/** Floating glass dock: Week on the left, Today as the big white button, Dishes on the right. */
+// Three side buttons, the big Today button, the gaps and the pill's padding.
+const DOCK_W = 48 * 3 + 58 + 18 * 3 + 14 * 2;
+
+/**
+ * Floating glass dock: Week, Today (big white button), Dishes, Settings.
+ * expo-router only registers TabTriggers that are direct children of the TabList's element,
+ * so the glass is a background layer beside them, not a wrapper around them.
+ */
 export default function AppTabs() {
   const t = useT();
   const insets = useSafeAreaInsets();
+  const { width } = useWindowDimensions();
   return (
     <Tabs>
       <TabSlot style={{ flex: 1 }} />
@@ -17,30 +25,30 @@ export default function AppTabs() {
         <View
           style={{
             position: 'absolute',
-            left: 0,
-            right: 0,
             bottom: insets.bottom + 14,
+            left: (width - DOCK_W) / 2,
+            width: DOCK_W,
             flexDirection: 'row',
-            justifyContent: 'center',
             alignItems: 'center',
-          }}
-          pointerEvents="box-none">
-          <Glass radius={999} strong style={{ padding: 6 }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 18, paddingHorizontal: 8 }}>
-              <TabTrigger name="week" href="/week" asChild>
-                <DockButton icon="calendar-outline" label={t('week')} />
-              </TabTrigger>
-              <TabTrigger name="index" href="/" asChild>
-                <DockButton icon="restaurant" label={t('today')} main />
-              </TabTrigger>
-              <TabTrigger name="explore" href="/explore" asChild>
-                <DockButton icon="search" label={t('dishes')} />
-              </TabTrigger>
-              <TabTrigger name="settings" href="/settings" asChild>
-                <DockButton icon="person-outline" label={t('settings')} />
-              </TabTrigger>
-            </View>
-          </Glass>
+            gap: 18,
+            padding: 6,
+            paddingHorizontal: 14,
+          }}>
+          <View style={StyleSheet.absoluteFill} pointerEvents="none">
+            <Glass radius={999} strong style={{ flex: 1 }} />
+          </View>
+          <TabTrigger name="week" href="/week" asChild>
+            <DockButton icon="calendar-outline" label={t('week')} />
+          </TabTrigger>
+          <TabTrigger name="index" href="/" asChild>
+            <DockButton icon="restaurant" label={t('today')} main />
+          </TabTrigger>
+          <TabTrigger name="explore" href="/explore" asChild>
+            <DockButton icon="search" label={t('dishes')} />
+          </TabTrigger>
+          <TabTrigger name="settings" href="/settings" asChild>
+            <DockButton icon="person-outline" label={t('settings')} />
+          </TabTrigger>
         </View>
       </TabList>
     </Tabs>

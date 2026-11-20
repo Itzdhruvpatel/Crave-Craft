@@ -1,5 +1,5 @@
 -- Mummy Said So: Family Table schema for Supabase (free tier).
--- Paste into Supabase > SQL Editor > New query, then Run.
+-- Paste into Supabase > SQL Editor > New query, then Run. Safe to run again.
 -- Row level security keeps each family's data visible only to its own members.
 
 create table if not exists families (
@@ -137,39 +137,69 @@ alter table poll_votes enable row level security;
 alter table petitions enable row level security;
 alter table attendance enable row level security;
 
+drop policy if exists "members see their family" on families;
 create policy "members see their family" on families for select using (is_member(id));
+drop policy if exists "hod renames family" on families;
 create policy "hod renames family" on families for update using (is_hod(id));
 
+drop policy if exists "members see each other" on members;
 create policy "members see each other" on members for select using (is_member(family_id));
+drop policy if exists "members edit themselves" on members;
 create policy "members edit themselves" on members for update using (user_id = auth.uid());
+drop policy if exists "hod manages members" on members;
 create policy "hod manages members" on members for delete using (is_hod(family_id) or user_id = auth.uid());
 
 -- Surprise mode: members only see a hidden day after its reveal time; the HOD always sees it.
+drop policy if exists "members read menu" on menus;
 create policy "members read menu" on menus for select
   using (is_member(family_id) and (hidden_until is null or hidden_until <= now() or is_hod(family_id)));
+drop policy if exists "hod writes menu" on menus;
 create policy "hod writes menu" on menus for all using (is_hod(family_id)) with check (is_hod(family_id));
 
+drop policy if exists "members read chat" on messages;
 create policy "members read chat" on messages for select using (is_member(family_id));
+drop policy if exists "members post chat" on messages;
 create policy "members post chat" on messages for insert with check (is_member(family_id) and user_id = auth.uid());
+drop policy if exists "authors delete own message" on messages;
 create policy "authors delete own message" on messages for delete using (user_id = auth.uid());
 
+drop policy if exists "members read polls" on polls;
 create policy "members read polls" on polls for select using (is_member(family_id));
+drop policy if exists "hod creates polls" on polls;
 create policy "hod creates polls" on polls for insert with check (is_hod(family_id) and created_by = auth.uid());
+drop policy if exists "hod closes polls" on polls;
 create policy "hod closes polls" on polls for update using (is_hod(family_id));
 
+drop policy if exists "members read votes" on poll_votes;
 create policy "members read votes" on poll_votes for select
   using (exists (select 1 from polls p where p.id = poll_id and is_member(p.family_id)));
+drop policy if exists "members vote once" on poll_votes;
 create policy "members vote once" on poll_votes for insert
   with check (user_id = auth.uid() and exists (select 1 from polls p where p.id = poll_id and is_member(p.family_id) and p.closes_at > now()));
+drop policy if exists "members change vote" on poll_votes;
 create policy "members change vote" on poll_votes for update using (user_id = auth.uid());
 
+drop policy if exists "members read petitions" on petitions;
 create policy "members read petitions" on petitions for select using (is_member(family_id));
+drop policy if exists "members file petitions" on petitions;
 create policy "members file petitions" on petitions for insert with check (is_member(family_id) and user_id = auth.uid());
+drop policy if exists "hod decides petitions" on petitions;
 create policy "hod decides petitions" on petitions for update using (is_hod(family_id));
 
+drop policy if exists "members read attendance" on attendance;
 create policy "members read attendance" on attendance for select using (is_member(family_id));
+drop policy if exists "members mark themselves" on attendance;
 create policy "members mark themselves" on attendance for all using (user_id = auth.uid() and is_member(family_id))
   with check (user_id = auth.uid() and is_member(family_id));
 
 -- Live updates for the chat, menu, polls and petitions screens.
-alter publication supabase_realtime add table messages, menus, polls, poll_votes, petitions, attendance;
+-- Safe to run again: only adds tables not already in the realtime publication.
+do $$
+declare t text;
+begin
+  foreach t in array array['messages', 'menus', 'polls', 'poll_votes', 'petitions', 'attendance'] loop
+    if not exists (select 1 from pg_publication_tables where pubname = 'supabase_realtime' and tablename = t) then
+      execute format('alter publication supabase_realtime add table %I', t);
+    end if;
+  end loop;
+end $$;
